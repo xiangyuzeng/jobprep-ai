@@ -1,0 +1,118 @@
+import { createClient } from "@/lib/supabase/server";
+import { streamClaude } from "@/lib/claude";
+import { BOARD_QUESTIONS_PROMPT } from "@/lib/prompts/board-questions";
+import { NextResponse } from "next/server";
+
+export const maxDuration = 60;
+
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { companyName, role, roundType, language, jobDescription, interviewerInfo } =
+      await request.json();
+
+    if (!companyName || !role || !roundType) {
+      return NextResponse.json(
+        { error: "Company name, role, and round type are required" },
+        { status: 400 }
+      );
+    }
+
+    // Create board record
+    const { data: board, error: dbError } = await supabase
+      .from("interview_boards")
+      .insert({
+        user_id: user.id,
+        company_name: companyName,
+        role,
+        round_type: roundType,
+        language: language || "en",
+        job_description: jobDescription,
+        interviewer_info: interviewerInfo,
+        status: "generating_questions",
+      })
+      .select("id")
+      .single();
+
+    if (dbError) {
+      return NextResponse.json({ error: dbError.message }, { status: 500 });
+    }
+
+    // Generate questions
+    let userMessage = `Company: ${companyName}
+Role: ${role}
+Interview Round: ${roundType}
+Language: ${language || "en"}`;
+
+    if (jobDescription) {
+      userMessage += `\n\nJob Description:\n${jobDescription}`;
+    }
+    if (interviewerInfo) {
+      userMessage += `\n\nInterviewer Info:\n${interviewerInfo}`;
+    }
+
+    const stream = await streamClaude({
+      systemPrompt: BOARD_QUESTIONS_PROMPT,
+      userMessage,
+      maxTokens: 8192,
+    });
+
+    let fullResponse = "";
+    for await (const event of stream) {
+      if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "text_delta"
+      ) {
+        fullResponse += event.delta.text;
+      }
+    }
+
+    // Parse questions JSON
+    const jsonMatch = fullResponse.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      await supabase
+        .from("interview_boards")
+        .update({ status: "failed" })
+        .eq("id", board.id);
+      return NextResponse.json(
+        { error: "Failed to generate questions" },
+        { status: 500 }
+      );
+    }
+
+    const result = JSON.parse(jsonMatch[0]);
+
+    // Save questions (without answers) to database
+    await supabase
+      .from("interview_boards")
+      .update({
+        board_type: result.board_type,
+        qtypes: result.qtypes,
+        modules: result.modules,
+        total_questions: result.total_questions || result.modules.reduce(
+          (sum: number, m: { cards: unknown[] }) => sum + m.cards.length, 0
+        ),
+        modules_total: result.modules.length,
+        status: "generating_answers",
+      })
+      .eq("id", board.id);
+
+    // Return board ID — client will drive module-by-module answer generation
+    return NextResponse.json({ boardId: board.id });
+  } catch (err) {
+    console.error("Interview start error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
