@@ -44,6 +44,12 @@ export default async function DashboardLayout({
                   Resume
                 </Link>
                 <Link
+                  href="/dashboard/prepare"
+                  className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  Quick Prepare
+                </Link>
+                <Link
                   href="/dashboard/interview"
                   className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
                 >

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { streamClaude } from "@/lib/claude";
 import { BOARD_QUESTIONS_PROMPT } from "@/lib/prompts/board-questions";
+import { VULNERABILITY_BOARD_QUESTIONS_PROMPT } from "@/lib/prompts/board-questions-vulnerability";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 60;
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { companyName, role, roundType, language, jobDescription, interviewerInfo } =
+    const { companyName, role, roundType, language, jobDescription, interviewerInfo, vulnerabilityData, sourceType, sourceId } =
       await request.json();
 
     if (!companyName || !role || !roundType) {
@@ -37,6 +38,8 @@ export async function POST(request: Request) {
         language: language || "en",
         job_description: jobDescription,
         interviewer_info: interviewerInfo,
+        source_type: sourceType || "manual",
+        source_id: sourceId || null,
         status: "generating_questions",
       })
       .select("id")
@@ -58,9 +61,16 @@ Language: ${language || "en"}`;
     if (interviewerInfo) {
       userMessage += `\n\nInterviewer Info:\n${interviewerInfo}`;
     }
+    if (vulnerabilityData) {
+      userMessage += `\n\nRESUME VULNERABILITY ANALYSIS:\n${JSON.stringify(vulnerabilityData)}`;
+    }
+
+    const systemPrompt = vulnerabilityData
+      ? VULNERABILITY_BOARD_QUESTIONS_PROMPT
+      : BOARD_QUESTIONS_PROMPT;
 
     const stream = await streamClaude({
-      systemPrompt: BOARD_QUESTIONS_PROMPT,
+      systemPrompt,
       userMessage,
       maxTokens: 8192,
     });

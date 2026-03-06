@@ -68,7 +68,34 @@ type PageState =
   | "results"
   | "error";
 
-type RightTab = "resume" | "cover-letter";
+type RightTab = "resume" | "cover-letter" | "vulnerability";
+
+interface VulnerabilityItem {
+  location: string;
+  original: string;
+  issue: string;
+  suggestion: string;
+}
+
+interface VulnerabilityCategory {
+  category: string;
+  severity: "high" | "medium" | "low";
+  items: VulnerabilityItem[];
+}
+
+interface AttackPoint {
+  topic: string;
+  likely_question: string;
+  risk_level: "high" | "medium" | "low";
+  preparation_advice: string;
+}
+
+interface VulnerabilityReport {
+  overall_risk_score: number;
+  categories: VulnerabilityCategory[];
+  attack_points: AttackPoint[];
+  summary: string;
+}
 
 // ---------------------------------------------------------------------------
 // Circular Progress Component
@@ -500,6 +527,10 @@ export default function ResumeTailorPage() {
   // PDF download
   const [pdfDownloading, setPdfDownloading] = useState(false);
 
+  // Vulnerability analysis
+  const [vulnerabilityReport, setVulnerabilityReport] = useState<VulnerabilityReport | null>(null);
+  const [vulnerabilityLoading, setVulnerabilityLoading] = useState(false);
+
   // Abort controller for streaming
   const abortRef = useRef<AbortController | null>(null);
 
@@ -784,6 +815,68 @@ export default function ResumeTailorPage() {
       setError(err instanceof Error ? err.message : "PDF download failed");
     } finally {
       setPdfDownloading(false);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Vulnerability analysis
+  // -------------------------------------------------------------------------
+
+  async function handleVulnerabilityAnalysis() {
+    if (!resume) return;
+    setVulnerabilityLoading(true);
+    setVulnerabilityReport(null);
+
+    try {
+      const res = await fetch("/api/resume/vulnerability", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeId: resume.id }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Vulnerability analysis failed");
+      }
+
+      const { vulnerabilities } = await res.json();
+      setVulnerabilityReport(vulnerabilities);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Vulnerability analysis failed");
+    } finally {
+      setVulnerabilityLoading(false);
+    }
+  }
+
+  async function handleGenerateVulnerabilityBoard() {
+    if (!vulnerabilityReport || !resume) return;
+    const parsedData = resume.parsed_data as Record<string, unknown>;
+    const experience = parsedData.experience as Array<{ title?: string }> | undefined;
+    const roleName = experience?.[0]?.title || "Professional";
+
+    try {
+      const res = await fetch("/api/interview/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyName: "Resume Vulnerability Practice",
+          role: roleName,
+          roundType: "general",
+          language: "en",
+          vulnerabilityData: vulnerabilityReport,
+          sourceType: "vulnerability",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Board generation failed");
+      }
+
+      const { boardId } = await res.json();
+      router.push(`/dashboard/interview/${boardId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate practice board");
     }
   }
 
@@ -1185,6 +1278,19 @@ export default function ResumeTailorPage() {
                   <span className="ml-1.5 w-2 h-2 bg-green-500 rounded-full inline-block" />
                 )}
               </button>
+              <button
+                onClick={() => setRightTab("vulnerability")}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  rightTab === "vulnerability"
+                    ? "border-orange-600 text-orange-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Vulnerability
+                {vulnerabilityReport && (
+                  <span className="ml-1.5 w-2 h-2 bg-orange-500 rounded-full inline-block" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -1429,6 +1535,160 @@ export default function ResumeTailorPage() {
                       className="mt-4 text-xs text-blue-600 hover:text-blue-700 font-medium"
                     >
                       Regenerate
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* --------------------------------------------------------- */}
+            {/* Vulnerability Tab                                          */}
+            {/* --------------------------------------------------------- */}
+            {rightTab === "vulnerability" && (
+              <>
+                {/* No report yet */}
+                {!vulnerabilityReport && !vulnerabilityLoading && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                      Resume Vulnerability Analysis
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-4 max-w-xs mx-auto">
+                      Find weak spots, vague language, and likely interviewer attack points — no job description needed.
+                    </p>
+                    <button
+                      onClick={handleVulnerabilityAnalysis}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                      Run Vulnerability Analysis
+                    </button>
+                  </div>
+                )}
+
+                {/* Loading */}
+                {vulnerabilityLoading && (
+                  <div className="text-center py-12">
+                    <svg className="animate-spin h-8 w-8 text-orange-500 mx-auto mb-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <p className="text-sm text-gray-500">Analyzing resume for vulnerabilities...</p>
+                    <p className="text-xs text-gray-400 mt-1">This may take 15-30 seconds</p>
+                  </div>
+                )}
+
+                {/* Results */}
+                {vulnerabilityReport && !vulnerabilityLoading && (
+                  <div className="space-y-5">
+                    {/* Risk Score + Summary */}
+                    <div className="flex items-start gap-4">
+                      <CircularProgress score={100 - vulnerabilityReport.overall_risk_score} />
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-gray-900">
+                          Risk Score: {vulnerabilityReport.overall_risk_score}/100
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {vulnerabilityReport.overall_risk_score <= 30
+                            ? "Low risk — your resume is solid"
+                            : vulnerabilityReport.overall_risk_score <= 60
+                            ? "Moderate risk — some areas need attention"
+                            : "High risk — significant vulnerabilities found"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {vulnerabilityReport.summary && (
+                      <p className="text-sm text-gray-600 bg-orange-50 border border-orange-100 rounded-lg p-3">
+                        {vulnerabilityReport.summary}
+                      </p>
+                    )}
+
+                    {/* Categories */}
+                    {vulnerabilityReport.categories.map((cat, ci) => (
+                      <div key={ci}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="text-sm font-semibold text-gray-900">{cat.category}</h4>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                            cat.severity === "high"
+                              ? "bg-red-100 text-red-700"
+                              : cat.severity === "medium"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-green-100 text-green-700"
+                          }`}>
+                            {cat.severity}
+                          </span>
+                          <span className="text-xs text-gray-400">{cat.items.length} issues</span>
+                        </div>
+                        <div className="space-y-2">
+                          {cat.items.map((item, ii) => (
+                            <div key={ii} className="bg-gray-50 rounded-lg border border-gray-200 p-3">
+                              <p className="text-xs text-red-600 font-medium mb-1">{item.issue}</p>
+                              {item.original && (
+                                <p className="text-xs text-gray-500 line-through mb-1">{item.original}</p>
+                              )}
+                              {item.suggestion && (
+                                <p className="text-xs text-green-700">{item.suggestion}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Attack Points */}
+                    {vulnerabilityReport.attack_points.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                          Interviewer Attack Points
+                        </h4>
+                        <div className="space-y-2">
+                          {vulnerabilityReport.attack_points.map((ap, ai) => (
+                            <div key={ai} className="bg-red-50 rounded-lg border border-red-100 p-3">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-semibold text-red-800">{ap.topic}</span>
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                  ap.risk_level === "high"
+                                    ? "bg-red-200 text-red-800"
+                                    : ap.risk_level === "medium"
+                                    ? "bg-yellow-200 text-yellow-800"
+                                    : "bg-green-200 text-green-800"
+                                }`}>
+                                  {ap.risk_level}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-700 italic mb-1">
+                                &ldquo;{ap.likely_question}&rdquo;
+                              </p>
+                              <p className="text-xs text-gray-600">{ap.preparation_advice}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Generate Practice Board CTA */}
+                    <div className="border-t border-gray-200 pt-4">
+                      <button
+                        onClick={handleGenerateVulnerabilityBoard}
+                        className="w-full bg-orange-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+                      >
+                        Generate Practice Board
+                      </button>
+                      <p className="text-xs text-gray-400 text-center mt-2">
+                        Creates a 40-80 question interview board targeting your weak spots
+                      </p>
+                    </div>
+
+                    {/* Regenerate */}
+                    <button
+                      onClick={handleVulnerabilityAnalysis}
+                      className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                    >
+                      Regenerate Analysis
                     </button>
                   </div>
                 )}

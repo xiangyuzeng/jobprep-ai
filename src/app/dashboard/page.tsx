@@ -33,6 +33,12 @@ export default async function DashboardPage() {
             New Resume
           </Link>
           <Link
+            href="/dashboard/prepare"
+            className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+          >
+            Quick Prepare
+          </Link>
+          <Link
             href="/dashboard/interview"
             className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
           >
