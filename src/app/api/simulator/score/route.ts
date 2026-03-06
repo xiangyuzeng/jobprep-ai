@@ -15,6 +15,7 @@ interface ScoreRequest {
   questionText: string;
   questionType: string;
   referenceAnswer?: string;
+  vulnerabilityContext?: string;
   transcript: string;
   duration: number;
   wpm: number;
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     questionText,
     questionType,
     referenceAnswer,
+    vulnerabilityContext,
     transcript,
     duration,
     wpm,
@@ -77,6 +79,7 @@ export async function POST(request: Request) {
     questionText,
     transcript,
     referenceAnswer,
+    vulnerabilityContext,
     wpm,
     fillerCount,
     confidenceScore,

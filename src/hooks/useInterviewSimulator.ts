@@ -57,9 +57,13 @@ export interface SimulatorConfig {
   companyName: string;
   role: string;
   roundType: string;
-  interviewerMode: "friendly" | "technical" | "stress";
+  interviewerMode: "friendly" | "technical" | "stress" | "skeptical";
   questionCount: number;
   selectedModules?: string[];
+  // Skeptical mode
+  vulnerabilityId?: string;
+  vulnerabilityData?: unknown; // RiskAuditReport
+  singleRiskItemId?: string;
 }
 
 export interface UseInterviewSimulatorReturn {
@@ -338,6 +342,12 @@ export function useInterviewSimulator(): UseInterviewSimulatorReturn {
         ? undefined
         : questions[currentIndex]?.referenceAnswer;
 
+      // For skeptical mode, pass the reference answer as vulnerability context
+      const vulnerabilityContext =
+        config.interviewerMode === "skeptical" && !isFollowUp
+          ? questions[currentIndex]?.referenceAnswer
+          : undefined;
+
       setIsLoading(true);
 
       try {
@@ -350,6 +360,7 @@ export function useInterviewSimulator(): UseInterviewSimulatorReturn {
             questionText: question,
             questionType,
             referenceAnswer,
+            vulnerabilityContext,
             transcript,
             duration: metrics.duration,
             wpm: metrics.wpm,
@@ -452,6 +463,8 @@ export function useInterviewSimulator(): UseInterviewSimulatorReturn {
             interviewerMode: sessionConfig.interviewerMode,
             questionCount: sessionConfig.questionCount,
             selectedModules: sessionConfig.selectedModules,
+            vulnerabilityData: sessionConfig.vulnerabilityData,
+            singleRiskItemId: sessionConfig.singleRiskItemId,
           }),
         });
 

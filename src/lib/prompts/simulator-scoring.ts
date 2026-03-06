@@ -46,6 +46,8 @@ export const FOLLOW_UP_MODIFIERS: Record<string, string> = {
   technical: `\n\nFOLLOW-UP STYLE: You are a precise technical interviewer. Frame follow-ups as deep dives: "Walk me through the exact implementation. What specific tool, command, or algorithm did you use for [gap]?" or "What was the time/space complexity?" Push for technical precision.`,
 
   stress: `\n\nFOLLOW-UP STYLE: You are a challenging, skeptical interviewer. Frame follow-ups as pushback: "I'm not convinced. What evidence do you have that [claimed result] actually happened?" or "That sounds like what anyone would say. What specifically did YOU do differently?" Be respectful but relentless.`,
+
+  skeptical: `\n\nFOLLOW-UP STYLE: You are a deeply skeptical interviewer who has read this candidate's resume and found specific points to challenge. Your follow-ups target the exact claim, gap, or skill being tested: "Your resume says X — but you haven't explained how you achieved that. Walk me through the specifics." When they give a number, ask "How did you measure that?" If the answer is vague, push back directly. Be professional but relentless in demanding proof.\n\nIMPORTANT: If VULNERABILITY CONTEXT is provided, your feedback should reference the specific resume claim or gap being tested. Score the answer against whether it would satisfy a skeptical interviewer who spotted this vulnerability.`,
 };
 
 // ---------------------------------------------------------------------------
@@ -59,6 +61,7 @@ export interface ScoringMessageParams {
   questionText: string;
   transcript: string;
   referenceAnswer?: string;
+  vulnerabilityContext?: string;
   wpm: number;
   fillerCount: number;
   confidenceScore: number;
@@ -73,6 +76,7 @@ export function buildScoringUserMessage(params: ScoringMessageParams): string {
     questionText,
     transcript,
     referenceAnswer,
+    vulnerabilityContext,
     wpm,
     fillerCount,
     confidenceScore,
@@ -107,6 +111,11 @@ Speech delivery metrics: ${wpm} WPM, ${fillerCount} filler words, ${confidenceSc
 ${referenceAnswer}`;
   }
 
+  if (vulnerabilityContext) {
+    message += `\n\nVULNERABILITY CONTEXT (the specific resume weakness this question targets):
+${vulnerabilityContext}`;
+  }
+
   return message;
 }
 
@@ -118,4 +127,5 @@ export const VOICE_MAP: Record<string, string> = {
   friendly: "nova",
   technical: "onyx",
   stress: "echo",
+  skeptical: "fable",
 };

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import type { RiskAuditReport } from "@/types/risk-audit";
 
 export const maxDuration = 15;
 
@@ -55,6 +56,9 @@ export async function POST(request: Request) {
     interviewerMode = "friendly",
     questionCount = 5,
     selectedModules,
+    // Skeptical mode
+    vulnerabilityData,
+    singleRiskItemId,
   } = body as {
     boardId?: string;
     companyName: string;
@@ -63,6 +67,8 @@ export async function POST(request: Request) {
     interviewerMode: string;
     questionCount: number;
     selectedModules?: string[];
+    vulnerabilityData?: RiskAuditReport;
+    singleRiskItemId?: string;
   };
 
   if (!companyName || !role || !roundType) {
@@ -78,6 +84,7 @@ export async function POST(request: Request) {
     type: string;
     referenceAnswer: string;
     moduleTitle: string;
+    followUp?: string;
   }> = [];
 
   if (boardId) {
@@ -119,6 +126,53 @@ export async function POST(request: Request) {
 
       // Shuffle and take requested count
       questions = shuffle(allCards).slice(0, questionCount);
+    }
+  }
+
+  // Skeptical mode: construct questions from vulnerability data
+  if (interviewerMode === "skeptical" && vulnerabilityData && questions.length === 0) {
+    const allItems = [
+      ...vulnerabilityData.claims_challenged.map((c) => ({
+        text: c.likely_question,
+        type: "B" as const,
+        referenceAnswer: `Defense: ${c.answer_draft}\n\nEvidence to prepare: ${c.evidence_to_prepare || ""}`,
+        moduleTitle: "Claims Challenged",
+        followUp: c.follow_up,
+      })),
+      ...vulnerabilityData.narrative_gaps.map((n) => ({
+        text: n.likely_question,
+        type: "B" as const,
+        referenceAnswer: `Defense: ${n.answer_draft}\n\nReframe: ${n.reframe_strategy}`,
+        moduleTitle: "Narrative Gaps",
+        followUp: n.follow_up,
+      })),
+      ...vulnerabilityData.technical_depth.map((t) => ({
+        text: t.depth_question,
+        type: "T" as const,
+        referenceAnswer: `Defense: ${t.answer_draft}\n\nMinimum knowledge: ${t.minimum_knowledge}`,
+        moduleTitle: "Technical Depth",
+        followUp: t.follow_up,
+      })),
+    ];
+
+    if (singleRiskItemId) {
+      // Single-item practice mode
+      const allRiskItems = [
+        ...vulnerabilityData.claims_challenged,
+        ...vulnerabilityData.narrative_gaps,
+        ...vulnerabilityData.technical_depth,
+      ];
+      const targetItem = allRiskItems.find((item) => item.id === singleRiskItemId);
+      if (targetItem) {
+        const targetQuestion =
+          "likely_question" in targetItem
+            ? targetItem.likely_question
+            : (targetItem as (typeof vulnerabilityData.technical_depth)[number]).depth_question;
+        const matchingQ = allItems.find((q) => q.text === targetQuestion);
+        if (matchingQ) questions = [matchingQ];
+      }
+    } else {
+      questions = shuffle(allItems).slice(0, questionCount);
     }
   }
 

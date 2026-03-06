@@ -38,11 +38,24 @@ export default async function SimulatorPage({
     .order("created_at", { ascending: false })
     .limit(20);
 
+  // Fetch completed vulnerability reports for skeptical mode
+  const { data: vulnerabilityReports } = await supabase
+    .from("resume_vulnerabilities")
+    .select("id, resume_id, vulnerabilities, status, created_at")
+    .eq("user_id", user.id)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
   return (
     <SimulatorPageClient
       boards={boards || []}
       pastSessions={sessions || []}
       preselectedBoardId={params.boardId}
+      vulnerabilityReports={vulnerabilityReports || []}
+      preselectedMode={params.mode}
+      preselectedVulnerabilityId={params.vulnerabilityId}
+      preselectedRiskItemId={params.riskItemId}
     />
   );
 }

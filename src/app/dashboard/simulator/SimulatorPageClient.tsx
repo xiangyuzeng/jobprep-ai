@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -9,6 +9,10 @@ import {
 } from "@/hooks/useInterviewSimulator";
 import SimulatorSetupPanel from "@/components/simulator/SimulatorSetupPanel";
 import SimulatorQuestionQueue from "@/components/simulator/SimulatorQuestionQueue";
+import {
+  isRiskAuditReport,
+  type VulnerabilityData,
+} from "@/types/risk-audit";
 
 // Lazy-load heavy components (Recharts, speech APIs)
 const SimulatorActivePanel = dynamic(
@@ -55,10 +59,21 @@ interface PastSession {
   completed_at: string | null;
 }
 
+interface VulnerabilityReportRow {
+  id: string;
+  resume_id: string;
+  vulnerabilities: unknown;
+  created_at: string;
+}
+
 interface Props {
   boards: Board[];
   pastSessions: PastSession[];
   preselectedBoardId?: string;
+  vulnerabilityReports?: VulnerabilityReportRow[];
+  preselectedMode?: string;
+  preselectedVulnerabilityId?: string;
+  preselectedRiskItemId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,9 +103,41 @@ export default function SimulatorPageClient({
   boards,
   pastSessions: initialPastSessions,
   preselectedBoardId,
+  vulnerabilityReports,
+  preselectedMode,
+  preselectedVulnerabilityId,
+  preselectedRiskItemId,
 }: Props) {
   const sim = useInterviewSimulator();
   const [pastSessions, setPastSessions] = useState(initialPastSessions);
+  const autoStartedRef = useRef(false);
+
+  // Auto-start for "Practice This" single-item flow
+  useEffect(() => {
+    if (autoStartedRef.current) return;
+    if (
+      preselectedMode === "skeptical" &&
+      preselectedVulnerabilityId &&
+      preselectedRiskItemId
+    ) {
+      const vr = vulnerabilityReports?.find(
+        (v) => v.id === preselectedVulnerabilityId
+      );
+      if (vr && isRiskAuditReport(vr.vulnerabilities as VulnerabilityData)) {
+        autoStartedRef.current = true;
+        sim.startSession({
+          companyName: "Resume Risk Audit",
+          role: "Candidate",
+          roundType: "vulnerability",
+          interviewerMode: "skeptical",
+          questionCount: 1,
+          vulnerabilityData: vr.vulnerabilities,
+          singleRiskItemId: preselectedRiskItemId,
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDeleteSession = async (e: React.MouseEvent, session: PastSession) => {
     e.preventDefault();
@@ -133,6 +180,10 @@ export default function SimulatorPageClient({
           isLoading={isLoading}
           preselectedBoardId={preselectedBoardId}
           isSupported={isSupported}
+          vulnerabilityReports={vulnerabilityReports}
+          preselectedMode={preselectedMode}
+          preselectedVulnerabilityId={preselectedVulnerabilityId}
+          preselectedRiskItemId={preselectedRiskItemId}
         />
 
         {/* Past sessions */}

@@ -2,6 +2,10 @@
 
 import { useState, useMemo } from "react";
 import type { SimulatorConfig } from "@/hooks/useInterviewSimulator";
+import {
+  isRiskAuditReport,
+  type VulnerabilityData,
+} from "@/types/risk-audit";
 
 interface Module {
   title: string;
@@ -16,12 +20,23 @@ interface Board {
   modules: Module[];
 }
 
+interface VulnerabilityReport {
+  id: string;
+  resume_id: string;
+  vulnerabilities: unknown;
+  created_at: string;
+}
+
 interface Props {
   boards: Board[];
   onStart: (config: SimulatorConfig) => void;
   isLoading: boolean;
   isSupported: boolean;
   preselectedBoardId?: string;
+  vulnerabilityReports?: VulnerabilityReport[];
+  preselectedMode?: string;
+  preselectedVulnerabilityId?: string;
+  preselectedRiskItemId?: string;
 }
 
 const MODES = [
@@ -46,6 +61,13 @@ const MODES = [
     color: "var(--vermillion)",
     desc: "Challenging and skeptical. Pushes back on claims and demands evidence and specifics.",
   },
+  {
+    key: "skeptical" as const,
+    label: "Skeptical Auditor",
+    icon: "\u{1F50D}",
+    color: "var(--gold-accent)",
+    desc: "Challenges your resume's weak spots. Questions come directly from your Risk Audit.",
+  },
 ];
 
 const QUESTION_COUNTS = [5, 10, 15, 20];
@@ -56,19 +78,39 @@ export default function SimulatorSetupPanel({
   isLoading,
   isSupported,
   preselectedBoardId,
+  vulnerabilityReports,
+  preselectedMode,
+  preselectedVulnerabilityId,
 }: Props) {
   const [selectedBoardId, setSelectedBoardId] = useState(
     preselectedBoardId || ""
   );
-  const [mode, setMode] = useState<"friendly" | "technical" | "stress">(
-    "friendly"
-  );
+  const [mode, setMode] = useState<
+    "friendly" | "technical" | "stress" | "skeptical"
+  >(preselectedMode === "skeptical" ? "skeptical" : "friendly");
   const [questionCount, setQuestionCount] = useState(5);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const [selectedVulnerabilityId, setSelectedVulnerabilityId] = useState(
+    preselectedVulnerabilityId || ""
+  );
 
   const selectedBoard = useMemo(
     () => boards.find((b) => b.id === selectedBoardId),
     [boards, selectedBoardId]
+  );
+
+  // Filter vulnerability reports to only those with the new Risk Audit format
+  const validVulnReports = useMemo(
+    () =>
+      (vulnerabilityReports || []).filter((vr) =>
+        isRiskAuditReport(vr.vulnerabilities as VulnerabilityData)
+      ),
+    [vulnerabilityReports]
+  );
+
+  const selectedVulnReport = useMemo(
+    () => validVulnReports.find((v) => v.id === selectedVulnerabilityId),
+    [validVulnReports, selectedVulnerabilityId]
   );
 
   const companyName = selectedBoard?.company_name || "";
@@ -99,19 +141,35 @@ export default function SimulatorSetupPanel({
     );
   };
 
-  const canStart = selectedBoardId && companyName && role;
+  const isSkeptical = mode === "skeptical";
+
+  const canStart = isSkeptical
+    ? !!selectedVulnReport
+    : selectedBoardId && companyName && role;
 
   const handleStart = () => {
     if (!canStart) return;
-    onStart({
-      boardId: selectedBoardId,
-      companyName,
-      role,
-      roundType,
-      interviewerMode: mode,
-      questionCount: Math.min(questionCount, totalAvailableQuestions || questionCount),
-      selectedModules: selectedModules.length > 0 ? selectedModules : undefined,
-    });
+
+    if (isSkeptical && selectedVulnReport) {
+      onStart({
+        companyName: "Resume Risk Audit",
+        role: "Candidate",
+        roundType: "vulnerability",
+        interviewerMode: "skeptical",
+        questionCount,
+        vulnerabilityData: selectedVulnReport.vulnerabilities,
+      });
+    } else {
+      onStart({
+        boardId: selectedBoardId,
+        companyName,
+        role,
+        roundType,
+        interviewerMode: mode,
+        questionCount: Math.min(questionCount, totalAvailableQuestions || questionCount),
+        selectedModules: selectedModules.length > 0 ? selectedModules : undefined,
+      });
+    }
   };
 
   return (
@@ -164,44 +222,6 @@ export default function SimulatorSetupPanel({
         </div>
       )}
 
-      {/* Board selector */}
-      <div style={{ marginBottom: 24 }}>
-        <label
-          style={{
-            display: "block",
-            fontSize: 12,
-            fontWeight: 600,
-            color: "var(--ink-mid)",
-            marginBottom: 6,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Interview Board
-        </label>
-        <select
-          value={selectedBoardId}
-          onChange={(e) => handleBoardChange(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: 6,
-            border: "1px solid var(--paper-dark)",
-            background: "var(--paper-white)",
-            color: "var(--ink-black)",
-            fontSize: 14,
-            fontFamily: "'Crimson Pro', Georgia, serif",
-          }}
-        >
-          <option value="">Select an interview board...</option>
-          {boards.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.company_name} — {b.role} ({b.round_type})
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Interviewer mode */}
       <div style={{ marginBottom: 24 }}>
         <label
@@ -217,45 +237,138 @@ export default function SimulatorSetupPanel({
         >
           Interviewer Style
         </label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-          {MODES.map((m) => (
-            <button
-              key={m.key}
-              onClick={() => setMode(m.key)}
-              className="cursor-pointer"
-              style={{
-                padding: "12px 10px",
-                borderRadius: 8,
-                border: `2px solid ${mode === m.key ? m.color : "var(--paper-dark)"}`,
-                background: mode === m.key ? "rgba(255,255,255,0.9)" : "var(--paper-white)",
-                textAlign: "center",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <div style={{ fontSize: 24, marginBottom: 4 }}>{m.icon}</div>
-              <div
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {MODES.map((m) => {
+            // Hide skeptical mode if no vulnerability reports
+            if (m.key === "skeptical" && validVulnReports.length === 0) return null;
+            return (
+              <button
+                key={m.key}
+                onClick={() => setMode(m.key)}
+                className="cursor-pointer"
                 style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "var(--ink-black)",
-                  marginBottom: 4,
+                  padding: "12px 10px",
+                  borderRadius: 8,
+                  border: `2px solid ${mode === m.key ? m.color : "var(--paper-dark)"}`,
+                  background: mode === m.key ? "rgba(255,255,255,0.9)" : "var(--paper-white)",
+                  textAlign: "center",
+                  transition: "all 0.15s ease",
                 }}
               >
-                {m.label}
-              </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--ink-light)",
-                  lineHeight: 1.3,
-                }}
-              >
-                {m.desc}
-              </div>
-            </button>
-          ))}
+                <div style={{ fontSize: 24, marginBottom: 4 }}>{m.icon}</div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "var(--ink-black)",
+                    marginBottom: 4,
+                  }}
+                >
+                  {m.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "var(--ink-light)",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {m.desc}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Board selector — hidden in skeptical mode */}
+      {!isSkeptical && (
+        <div style={{ marginBottom: 24 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--ink-mid)",
+              marginBottom: 6,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Interview Board
+          </label>
+          <select
+            value={selectedBoardId}
+            onChange={(e) => handleBoardChange(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: 6,
+              border: "1px solid var(--paper-dark)",
+              background: "var(--paper-white)",
+              color: "var(--ink-black)",
+              fontSize: 14,
+              fontFamily: "'Crimson Pro', Georgia, serif",
+            }}
+          >
+            <option value="">Select an interview board...</option>
+            {boards.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.company_name} — {b.role} ({b.round_type})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Vulnerability report selector — shown in skeptical mode */}
+      {isSkeptical && (
+        <div style={{ marginBottom: 24 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--ink-mid)",
+              marginBottom: 6,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Risk Audit Report
+          </label>
+          <select
+            value={selectedVulnerabilityId}
+            onChange={(e) => setSelectedVulnerabilityId(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              borderRadius: 6,
+              border: "1px solid var(--paper-dark)",
+              background: "var(--paper-white)",
+              color: "var(--ink-black)",
+              fontSize: 14,
+              fontFamily: "'Crimson Pro', Georgia, serif",
+            }}
+          >
+            <option value="">Select a risk audit report...</option>
+            {validVulnReports.map((vr) => (
+              <option key={vr.id} value={vr.id}>
+                Risk Audit — {new Date(vr.created_at).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </option>
+            ))}
+          </select>
+          {validVulnReports.length === 0 && (
+            <p style={{ fontSize: 12, color: "var(--ink-light)", marginTop: 6 }}>
+              No Risk Audit reports found. Run a vulnerability analysis on a resume first.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Question count */}
       <div style={{ marginBottom: 24 }}>
@@ -270,7 +383,7 @@ export default function SimulatorSetupPanel({
             letterSpacing: "0.05em",
           }}
         >
-          Questions {totalAvailableQuestions > 0 && `(${totalAvailableQuestions} available)`}
+          Questions {!isSkeptical && totalAvailableQuestions > 0 && `(${totalAvailableQuestions} available)`}
         </label>
         <div style={{ display: "flex", gap: 8 }}>
           {QUESTION_COUNTS.map((n) => (
@@ -297,8 +410,8 @@ export default function SimulatorSetupPanel({
         </div>
       </div>
 
-      {/* Module filter */}
-      {selectedBoard && selectedBoard.modules && selectedBoard.modules.length > 1 && (
+      {/* Module filter — hidden in skeptical mode */}
+      {!isSkeptical && selectedBoard && selectedBoard.modules && selectedBoard.modules.length > 1 && (
         <div style={{ marginBottom: 24 }}>
           <label
             style={{
@@ -364,7 +477,11 @@ export default function SimulatorSetupPanel({
           opacity: isLoading ? 0.7 : 1,
         }}
       >
-        {isLoading ? "Setting up interview..." : "\u{1F3A4} Start Interview"}
+        {isLoading
+          ? "Setting up interview..."
+          : isSkeptical
+            ? "\u{1F50D} Start Skeptical Interview"
+            : "\u{1F3A4} Start Interview"}
       </button>
     </div>
   );

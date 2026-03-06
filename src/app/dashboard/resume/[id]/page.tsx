@@ -4,6 +4,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import {
+  isRiskAuditReport,
+  type VulnerabilityData,
+} from "@/types/risk-audit";
+import RiskAuditPanel from "@/components/risk-audit/RiskAuditPanel";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -529,7 +534,10 @@ export default function ResumeTailorPage() {
   const [pdfDownloading, setPdfDownloading] = useState(false);
 
   // Vulnerability analysis
-  const [vulnerabilityReport, setVulnerabilityReport] = useState<VulnerabilityReport | null>(null);
+  const [vulnerabilityReport, setVulnerabilityReport] = useState<
+    VulnerabilityData | VulnerabilityReport | null
+  >(null);
+  const [vulnerabilityId, setVulnerabilityId] = useState<string | null>(null);
   const [vulnerabilityLoading, setVulnerabilityLoading] = useState(false);
 
   // Abort controller for streaming
@@ -832,7 +840,11 @@ export default function ResumeTailorPage() {
       const res = await fetch("/api/resume/vulnerability", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeId: resume.id }),
+        body: JSON.stringify({
+          resumeId: resume.id,
+          jobDescription: jobDescription || undefined,
+          companyName: result?.jd_analysis?.company || undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -840,7 +852,8 @@ export default function ResumeTailorPage() {
         throw new Error(data.error || "Vulnerability analysis failed");
       }
 
-      const { vulnerabilities } = await res.json();
+      const { vulnerabilityId: vId, vulnerabilities } = await res.json();
+      setVulnerabilityId(vId);
       setVulnerabilityReport(vulnerabilities);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Vulnerability analysis failed");
@@ -879,6 +892,24 @@ export default function ResumeTailorPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate practice board");
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Practice risk items in simulator
+  // -------------------------------------------------------------------------
+
+  function handlePracticeItem(itemId: string) {
+    if (!vulnerabilityId) return;
+    router.push(
+      `/dashboard/simulator?mode=skeptical&vulnerabilityId=${vulnerabilityId}&riskItemId=${itemId}`
+    );
+  }
+
+  function handlePracticeAll() {
+    if (!vulnerabilityId) return;
+    router.push(
+      `/dashboard/simulator?mode=skeptical&vulnerabilityId=${vulnerabilityId}`
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -1595,114 +1626,126 @@ export default function ResumeTailorPage() {
 
                 {/* Results */}
                 {vulnerabilityReport && !vulnerabilityLoading && (
-                  <div className="space-y-5">
-                    {/* Risk Score + Summary */}
-                    <div className="flex items-start gap-4">
-                      <CircularProgress score={100 - vulnerabilityReport.overall_risk_score} />
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900">
-                          Risk Score: {vulnerabilityReport.overall_risk_score}/100
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {vulnerabilityReport.overall_risk_score <= 30
-                            ? "Low risk — your resume is solid"
-                            : vulnerabilityReport.overall_risk_score <= 60
-                            ? "Moderate risk — some areas need attention"
-                            : "High risk — significant vulnerabilities found"}
+                  isRiskAuditReport(vulnerabilityReport as VulnerabilityData) ? (
+                    <RiskAuditPanel
+                      report={vulnerabilityReport as import("@/types/risk-audit").RiskAuditReport}
+                      vulnerabilityId={vulnerabilityId!}
+                      onPracticeItem={handlePracticeItem}
+                      onPracticeAll={handlePracticeAll}
+                      onGenerateBoard={handleGenerateVulnerabilityBoard}
+                      onRegenerate={handleVulnerabilityAnalysis}
+                    />
+                  ) : (
+                    /* Legacy vulnerability report format */
+                    <div className="space-y-5">
+                      {/* Risk Score + Summary */}
+                      <div className="flex items-start gap-4">
+                        <CircularProgress score={100 - (vulnerabilityReport as VulnerabilityReport).overall_risk_score} />
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-gray-900">
+                            Risk Score: {(vulnerabilityReport as VulnerabilityReport).overall_risk_score}/100
+                          </h3>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {(vulnerabilityReport as VulnerabilityReport).overall_risk_score <= 30
+                              ? "Low risk — your resume is solid"
+                              : (vulnerabilityReport as VulnerabilityReport).overall_risk_score <= 60
+                              ? "Moderate risk — some areas need attention"
+                              : "High risk — significant vulnerabilities found"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {(vulnerabilityReport as VulnerabilityReport).summary && (
+                        <p className="text-sm text-gray-600 bg-orange-50 border border-orange-100 rounded-sm p-3">
+                          {(vulnerabilityReport as VulnerabilityReport).summary}
+                        </p>
+                      )}
+
+                      {/* Categories */}
+                      {(vulnerabilityReport as VulnerabilityReport).categories.map((cat, ci) => (
+                        <div key={ci}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="text-sm font-semibold text-gray-900">{cat.category}</h4>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                              cat.severity === "high"
+                                ? "bg-red-100 text-red-700"
+                                : cat.severity === "medium"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-green-100 text-green-700"
+                            }`}>
+                              {cat.severity}
+                            </span>
+                            <span className="text-xs text-gray-400">{cat.items.length} issues</span>
+                          </div>
+                          <div className="space-y-2">
+                            {cat.items.map((item, ii) => (
+                              <div key={ii} className="bg-gray-50 rounded-sm border border-gray-200 p-3">
+                                <p className="text-xs text-red-600 font-medium mb-1">{item.issue}</p>
+                                {item.original && (
+                                  <p className="text-xs text-gray-500 line-through mb-1">{item.original}</p>
+                                )}
+                                {item.suggestion && (
+                                  <p className="text-xs text-green-700">{item.suggestion}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Attack Points */}
+                      {(vulnerabilityReport as VulnerabilityReport).attack_points.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                            Interviewer Attack Points
+                          </h4>
+                          <div className="space-y-2">
+                            {(vulnerabilityReport as VulnerabilityReport).attack_points.map((ap, ai) => (
+                              <div key={ai} className="bg-red-50 rounded-sm border border-red-100 p-3">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-semibold text-red-800">{ap.topic}</span>
+                                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                    ap.risk_level === "high"
+                                      ? "bg-red-200 text-red-800"
+                                      : ap.risk_level === "medium"
+                                      ? "bg-yellow-200 text-yellow-800"
+                                      : "bg-green-200 text-green-800"
+                                  }`}>
+                                    {ap.risk_level}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-700 italic mb-1">
+                                  &ldquo;{ap.likely_question}&rdquo;
+                                </p>
+                                <p className="text-xs text-gray-600">{ap.preparation_advice}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Generate Practice Board CTA */}
+                      <div className="border-t border-gray-200 pt-4">
+                        <button
+                          onClick={handleGenerateVulnerabilityBoard}
+                          className="w-full bg-[var(--gold-accent)] text-white py-2.5 rounded-sm text-sm font-medium hover:bg-[#b89840] transition-colors flex items-center justify-center gap-2"
+                        >
+                          Generate Practice Board
+                        </button>
+                        <p className="text-xs text-gray-400 text-center mt-2">
+                          Creates a 40-80 question interview board targeting your weak spots
                         </p>
                       </div>
-                    </div>
 
-                    {vulnerabilityReport.summary && (
-                      <p className="text-sm text-gray-600 bg-orange-50 border border-orange-100 rounded-sm p-3">
-                        {vulnerabilityReport.summary}
-                      </p>
-                    )}
-
-                    {/* Categories */}
-                    {vulnerabilityReport.categories.map((cat, ci) => (
-                      <div key={ci}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="text-sm font-semibold text-gray-900">{cat.category}</h4>
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                            cat.severity === "high"
-                              ? "bg-red-100 text-red-700"
-                              : cat.severity === "medium"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-green-100 text-green-700"
-                          }`}>
-                            {cat.severity}
-                          </span>
-                          <span className="text-xs text-gray-400">{cat.items.length} issues</span>
-                        </div>
-                        <div className="space-y-2">
-                          {cat.items.map((item, ii) => (
-                            <div key={ii} className="bg-gray-50 rounded-sm border border-gray-200 p-3">
-                              <p className="text-xs text-red-600 font-medium mb-1">{item.issue}</p>
-                              {item.original && (
-                                <p className="text-xs text-gray-500 line-through mb-1">{item.original}</p>
-                              )}
-                              {item.suggestion && (
-                                <p className="text-xs text-green-700">{item.suggestion}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Attack Points */}
-                    {vulnerabilityReport.attack_points.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">
-                          Interviewer Attack Points
-                        </h4>
-                        <div className="space-y-2">
-                          {vulnerabilityReport.attack_points.map((ap, ai) => (
-                            <div key={ai} className="bg-red-50 rounded-sm border border-red-100 p-3">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-semibold text-red-800">{ap.topic}</span>
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                  ap.risk_level === "high"
-                                    ? "bg-red-200 text-red-800"
-                                    : ap.risk_level === "medium"
-                                    ? "bg-yellow-200 text-yellow-800"
-                                    : "bg-green-200 text-green-800"
-                                }`}>
-                                  {ap.risk_level}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-700 italic mb-1">
-                                &ldquo;{ap.likely_question}&rdquo;
-                              </p>
-                              <p className="text-xs text-gray-600">{ap.preparation_advice}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Generate Practice Board CTA */}
-                    <div className="border-t border-gray-200 pt-4">
+                      {/* Regenerate */}
                       <button
-                        onClick={handleGenerateVulnerabilityBoard}
-                        className="w-full bg-[var(--gold-accent)] text-white py-2.5 rounded-sm text-sm font-medium hover:bg-[#b89840] transition-colors flex items-center justify-center gap-2"
+                        onClick={handleVulnerabilityAnalysis}
+                        className="text-xs text-orange-600 hover:text-orange-700 font-medium"
                       >
-                        Generate Practice Board
+                        Regenerate Analysis
                       </button>
-                      <p className="text-xs text-gray-400 text-center mt-2">
-                        Creates a 40-80 question interview board targeting your weak spots
-                      </p>
                     </div>
-
-                    {/* Regenerate */}
-                    <button
-                      onClick={handleVulnerabilityAnalysis}
-                      className="text-xs text-orange-600 hover:text-orange-700 font-medium"
-                    >
-                      Regenerate Analysis
-                    </button>
-                  </div>
+                  )
                 )}
               </>
             )}
