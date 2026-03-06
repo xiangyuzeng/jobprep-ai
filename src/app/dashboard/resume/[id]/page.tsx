@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 // ---------------------------------------------------------------------------
@@ -1023,6 +1024,17 @@ export default function ResumeTailorPage() {
                 </>
               )}
             </button>
+          )}
+
+          {/* Review with AI Coach */}
+          {tailoredResumeId && (
+            <Link
+              href={`/dashboard/coach?tailoredResumeId=${tailoredResumeId}&mode=resume_coach`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-sm transition-colors"
+              style={{ background: "var(--jade-green)", color: "#fff", textDecoration: "none" }}
+            >
+              ✨ AI Coach
+            </Link>
           )}
         </div>
       </div>

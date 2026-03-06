@@ -71,6 +71,13 @@ export default async function DashboardLayout({
                   Quick Prepare
                 </Link>
                 <Link
+                  href="/dashboard/coach"
+                  className="px-3 py-1.5 text-sm rounded-sm transition-colors"
+                  style={{ color: "var(--ink-mid)", textDecoration: "none" }}
+                >
+                  AI Coach
+                </Link>
+                <Link
                   href="/dashboard/interview"
                   className="px-3 py-1.5 text-sm rounded-sm transition-colors"
                   style={{ color: "var(--ink-mid)", textDecoration: "none" }}

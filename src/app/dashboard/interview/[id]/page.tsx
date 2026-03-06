@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import dynamic from "next/dynamic";
 
@@ -636,6 +637,12 @@ export default function InterviewBoardPage() {
               >
                 📊
               </button>
+              <Link
+                href={`/dashboard/coach?boardId=${boardId}&mode=mock_interviewer`}
+                style={{ padding: "3px 10px", borderRadius: 6, border: "none", background: "var(--gold-accent)", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
+              >
+                🤖 AI Coach
+              </Link>
             </div>
           </div>
 
@@ -1003,6 +1010,12 @@ export default function InterviewBoardPage() {
                 >
                   {practiceMode ? "🎤 Practicing" : "🎤 Practice"}
                 </button>
+                <Link
+                  href={`/dashboard/coach?boardId=${boardId}&questionId=${currentModalCard.num}&mode=answer_improver`}
+                  style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: "var(--gold-accent)", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+                >
+                  ✨ Improve
+                </Link>
               </div>
               <div style={{ display: "flex", gap: 6 }}>
                 <NavBtn onClick={() => { setPracticeMode(false); navigateModal(-1); }}>← Prev</NavBtn>
