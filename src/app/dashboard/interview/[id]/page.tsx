@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import dynamic from "next/dynamic";
 
 const SpeechPracticePanel = dynamic(() => import("@/components/interview/SpeechPracticePanel"), { ssr: false });
+const DossierCard = dynamic(() => import("@/components/dossier/DossierCard"), { ssr: false });
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,6 +39,7 @@ interface Board {
   modules_completed: number;
   modules_total: number;
   created_at: string;
+  dossier?: Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -756,6 +758,13 @@ export default function InterviewBoardPage() {
           </div>
         )}
       </header>
+
+      {/* Company Dossier Card */}
+      {board?.dossier && (
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "16px 20px 0" }}>
+          <DossierCard dossier={board.dossier as unknown as import("@/lib/dossier").CompanyDossier} defaultCollapsed={true} />
+        </div>
+      )}
 
       {/* ================================================================= */}
       {/* Main content — module sections with card grids                     */}

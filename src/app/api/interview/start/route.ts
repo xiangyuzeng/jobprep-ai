@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { companyName, role, roundType, language, jobDescription, interviewerInfo, vulnerabilityData, sourceType, sourceId } =
+    const { companyName, role, roundType, language, jobDescription, interviewerInfo, vulnerabilityData, sourceType, sourceId, dossier } =
       await request.json();
 
     if (!companyName || !role || !roundType) {
@@ -40,6 +40,7 @@ export async function POST(request: Request) {
         interviewer_info: interviewerInfo,
         source_type: sourceType || "manual",
         source_id: sourceId || null,
+        dossier: dossier || null,
         status: "generating_questions",
       })
       .select("id")
@@ -63,6 +64,10 @@ Language: ${language || "en"}`;
     }
     if (vulnerabilityData) {
       userMessage += `\n\nRESUME VULNERABILITY ANALYSIS:\n${JSON.stringify(vulnerabilityData)}`;
+    }
+    if (dossier) {
+      const { formatDossierContext } = await import("@/lib/dossier");
+      userMessage += `\n\n${formatDossierContext(dossier)}`;
     }
 
     const systemPrompt = vulnerabilityData

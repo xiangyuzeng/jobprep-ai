@@ -1,4 +1,5 @@
 import type { CoachMode } from '@/types/coach';
+import { formatDossierContext, type CompanyDossier } from '@/lib/dossier';
 
 // ── Context data structure passed to system prompt builder ──
 export interface CoachContextData {
@@ -17,6 +18,7 @@ export interface CoachContextData {
     cards: Array<{ num: number; q: string; a: string; qtype: string }>;
   }>;
   targetQuestion?: { q: string; a: string };
+  dossier?: Record<string, unknown>;
 }
 
 // ── Base prompts for each coaching mode ──
@@ -179,6 +181,10 @@ export function getCoachSystemPrompt(
     contextBlocks.push(
       `<target_question>\nQ: ${context.targetQuestion.q}\nA: ${context.targetQuestion.a}\n</target_question>`
     );
+  }
+
+  if (context.dossier) {
+    contextBlocks.push(formatDossierContext(context.dossier as unknown as CompanyDossier));
   }
 
   if (contextBlocks.length > 0) {

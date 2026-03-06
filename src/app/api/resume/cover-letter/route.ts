@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const userMessage = `CANDIDATE RESUME:
+    let userMessage = `CANDIDATE RESUME:
 ${JSON.stringify(tailored.resumes.parsed_data, null, 2)}
 
 JOB DESCRIPTION:
@@ -48,6 +48,11 @@ ${tailored.job_description}
 
 COMPANY: ${tailored.company_name || "Unknown"}
 ROLE: ${tailored.job_title || "Unknown"}`;
+
+    if (tailored.dossier) {
+      const { formatDossierContext } = await import("@/lib/dossier");
+      userMessage += `\n\n${formatDossierContext(tailored.dossier)}`;
+    }
 
     const stream = await streamClaude({
       systemPrompt: COVER_LETTER_PROMPT,

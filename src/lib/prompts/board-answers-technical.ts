@@ -32,4 +32,10 @@ Rules:
 - Show understanding of production-scale systems
 - Address the "why" behind technical decisions, not just the "what"
 - Tailor answers to the specific company and role context provided
-- Return ONLY the JSON object`;
+- Return ONLY the JSON object
+
+If a <company_dossier> block is provided, use it to:
+- Reference specific company details, recent news, and strategic initiatives
+- Align responses with the company's known culture, values, and technology stack
+- Use the company's actual terminology, product names, and market positioning
+- Do NOT fabricate company details — only use what is in the dossier`;

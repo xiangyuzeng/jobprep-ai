@@ -87,6 +87,10 @@ ${questionsText}`;
     if (board.job_description) {
       userMessage += `\n\nJob Description Context:\n${board.job_description}`;
     }
+    if (board.dossier) {
+      const { formatDossierContext } = await import("@/lib/dossier");
+      userMessage += `\n\n${formatDossierContext(board.dossier)}`;
+    }
 
     // Stream from Claude and collect full response
     const stream = await streamClaude({

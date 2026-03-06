@@ -89,7 +89,7 @@ export async function POST(request: Request) {
   if (tailoredResumeId) {
     const { data: tailored } = await supabase
       .from('tailored_resumes')
-      .select('job_description, jd_analysis, tailored_data, match_score, skill_gap, cover_letter')
+      .select('job_description, jd_analysis, tailored_data, match_score, skill_gap, cover_letter, dossier')
       .eq('id', tailoredResumeId)
       .single();
     if (tailored) {
@@ -99,19 +99,21 @@ export async function POST(request: Request) {
       if (tailored.match_score) contextData.matchScore = tailored.match_score;
       if (tailored.skill_gap) contextData.skillGap = tailored.skill_gap as Record<string, unknown>;
       if (tailored.cover_letter) contextData.coverLetter = tailored.cover_letter;
+      if (tailored.dossier && !contextData.dossier) contextData.dossier = tailored.dossier as Record<string, unknown>;
     }
   }
 
   if (boardId) {
     const { data: board } = await supabase
       .from('interview_boards')
-      .select('modules, company_name, role, round_type')
+      .select('modules, company_name, role, round_type, dossier')
       .eq('id', boardId)
       .single();
     if (board) {
       contextData.boardCompany = board.company_name;
       contextData.boardRole = board.role;
       contextData.boardRoundType = board.round_type;
+      if (board.dossier) contextData.dossier = board.dossier as Record<string, unknown>;
       if (board.modules) {
         const modules = board.modules as Array<{
           title: string;

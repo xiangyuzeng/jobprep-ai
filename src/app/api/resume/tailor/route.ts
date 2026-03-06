@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { resumeId, jobDescription } = await request.json();
+    const { resumeId, jobDescription, dossier } = await request.json();
 
     if (!resumeId || !jobDescription) {
       return NextResponse.json(
@@ -53,11 +53,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
 
-    const userMessage = `RESUME DATA:
+    let userMessage = `RESUME DATA:
 ${JSON.stringify(resume.parsed_data, null, 2)}
 
 JOB DESCRIPTION:
 ${jobDescription}`;
+
+    if (dossier) {
+      const { formatDossierContext } = await import("@/lib/dossier");
+      userMessage += `\n\n${formatDossierContext(dossier)}`;
+    }
 
     const stream = await streamClaude({
       systemPrompt: RESUME_TAILOR_PROMPT,
@@ -101,6 +106,7 @@ ${jobDescription}`;
                   keyword_matches: result.keyword_matches,
                   company_name: result.jd_analysis?.company,
                   job_title: result.jd_analysis?.job_title,
+                  dossier: dossier || null,
                   status: "completed",
                 })
                 .eq("id", tailored.id);

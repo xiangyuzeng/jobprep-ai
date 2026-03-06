@@ -32,4 +32,10 @@ Rules:
 - Show self-awareness and emotional intelligence
 - Tailor to the company's known culture and values
 - Be authentic — avoid generic corporate speak
-- Return ONLY the JSON object`;
+- Return ONLY the JSON object
+
+If a <company_dossier> block is provided, use it to:
+- Reference specific company details, recent news, and strategic initiatives
+- Align responses with the company's known culture, values, and technology stack
+- Use the company's actual terminology, product names, and market positioning
+- Do NOT fabricate company details — only use what is in the dossier`;

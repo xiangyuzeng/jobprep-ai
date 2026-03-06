@@ -2,6 +2,9 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import DossierCard from "@/components/dossier/DossierCard";
+import DossierLoadingState from "@/components/dossier/DossierLoadingState";
+import type { CompanyDossier } from "@/lib/dossier";
 
 interface JDAnalysis {
   job_title: string;
@@ -15,7 +18,7 @@ interface JDAnalysis {
   culture_indicators: string[];
 }
 
-type PageState = "idle" | "analyzing" | "analyzed" | "generating";
+type PageState = "idle" | "analyzing" | "analyzed" | "researching" | "generating";
 
 function suggestRoundType(analysis: JDAnalysis): string {
   const title = (analysis.job_title || "").toLowerCase();
@@ -34,7 +37,45 @@ export default function PreparePage() {
   const [roundType, setRoundType] = useState("general");
   const [language, setLanguage] = useState("en");
   const [error, setError] = useState("");
+  const [dossier, setDossier] = useState<CompanyDossier | null>(null);
+  const [dossierError, setDossierError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+
+  const handleResearch = async (analysisOverride?: JDAnalysis) => {
+    const currentAnalysis = analysisOverride || analysis;
+    if (!currentAnalysis?.company) return;
+
+    setDossierError("");
+
+    try {
+      const res = await fetch("/api/dossier/build", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyName: currentAnalysis.company,
+          jobDescription: jdText,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Research failed");
+      }
+
+      const { dossier: result } = await res.json();
+      if (result) {
+        setDossier(result);
+      } else {
+        setDossierError("Could not gather company intel. You can still generate the board.");
+      }
+    } catch (err) {
+      setDossierError(
+        err instanceof Error ? err.message : "Company research failed"
+      );
+    } finally {
+      setPageState("analyzed");
+    }
+  };
 
   const handleAnalyze = async () => {
     if (jdText.trim().length < 50) {
@@ -92,7 +133,14 @@ export default function PreparePage() {
       const parsed: JDAnalysis = JSON.parse(jsonMatch[0]);
       setAnalysis(parsed);
       setRoundType(suggestRoundType(parsed));
-      setPageState("analyzed");
+
+      // Auto-trigger company research if company name found
+      if (parsed.company) {
+        setPageState("researching");
+        handleResearch(parsed);
+      } else {
+        setPageState("analyzed");
+      }
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Analysis failed");
@@ -117,6 +165,7 @@ export default function PreparePage() {
           language,
           jobDescription: jdText,
           sourceType: "jd_prepare",
+          dossier: dossier || undefined,
         }),
       });
 
@@ -187,7 +236,7 @@ export default function PreparePage() {
       )}
 
       {/* Step 2: Review Analysis */}
-      {(pageState === "analyzed" || pageState === "generating") && analysis && (
+      {(pageState === "analyzed" || pageState === "researching" || pageState === "generating") && analysis && (
         <div className="space-y-4">
           {/* Analysis Results */}
           <div className="bg-white rounded-sm border border-gray-200 p-6">
@@ -197,6 +246,8 @@ export default function PreparePage() {
                 onClick={() => {
                   setPageState("idle");
                   setAnalysis(null);
+                  setDossier(null);
+                  setDossierError("");
                 }}
                 className="text-xs text-gray-500 hover:text-gray-700"
               >
@@ -286,7 +337,7 @@ export default function PreparePage() {
                 <ul className="mt-1.5 space-y-1">
                   {analysis.key_responsibilities.map((resp, i) => (
                     <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                      <span className="text-gray-400 mt-0.5">•</span>
+                      <span className="text-gray-400 mt-0.5">{"\u2022"}</span>
                       {resp}
                     </li>
                   ))}
@@ -314,6 +365,34 @@ export default function PreparePage() {
             )}
           </div>
 
+          {/* Dossier Section */}
+          {pageState === "researching" && analysis.company && (
+            <DossierLoadingState companyName={analysis.company} />
+          )}
+
+          {dossier && pageState !== "researching" && (
+            <DossierCard dossier={dossier} />
+          )}
+
+          {dossierError && pageState !== "researching" && (
+            <div className="mb-2 p-3 bg-yellow-50 border border-yellow-200 rounded-sm text-sm text-yellow-700">
+              {dossierError}
+            </div>
+          )}
+
+          {/* Manual research button if no dossier and analysis has company */}
+          {!dossier && !dossierError && pageState === "analyzed" && analysis.company && (
+            <button
+              onClick={() => {
+                setPageState("researching");
+                handleResearch();
+              }}
+              className="w-full py-2 text-sm text-[var(--gold-accent)] border border-[var(--gold-accent)] rounded-sm hover:bg-[var(--gold-accent)] hover:text-white transition-colors"
+            >
+              {"\u{1F50D}"} Research {analysis.company}
+            </button>
+          )}
+
           {/* Board Configuration */}
           <div className="bg-white rounded-sm border border-gray-200 p-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
@@ -328,7 +407,7 @@ export default function PreparePage() {
                   value={roundType}
                   onChange={(e) => setRoundType(e.target.value)}
                   className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--vermillion)]"
-                  disabled={pageState === "generating"}
+                  disabled={pageState === "generating" || pageState === "researching"}
                 >
                   <option value="technical">Technical</option>
                   <option value="hr">HR / Recruiter</option>
@@ -344,7 +423,7 @@ export default function PreparePage() {
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
                   className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--vermillion)]"
-                  disabled={pageState === "generating"}
+                  disabled={pageState === "generating" || pageState === "researching"}
                 >
                   <option value="en">English</option>
                   <option value="zh">Chinese</option>
@@ -354,7 +433,7 @@ export default function PreparePage() {
 
             <button
               onClick={handleGenerate}
-              disabled={pageState === "generating"}
+              disabled={pageState === "generating" || pageState === "researching"}
               className="mt-4 w-full bg-[var(--gold-accent)] text-white py-2.5 rounded-sm text-sm font-medium hover:bg-[#b89840] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {pageState === "generating" ? (

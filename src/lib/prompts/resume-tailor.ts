@@ -59,4 +59,10 @@ Rules:
 - Be specific about WHERE in the resume each change goes (section + index)
 - NEVER fabricate experience or skills the candidate doesn't have
 - Suggestions should make truthful adjustments to wording, emphasis, and ordering
-- Return ONLY the JSON object`;
+- Return ONLY the JSON object
+
+If a <company_dossier> block is provided, use it to:
+- Reference specific company details, recent news, and strategic initiatives
+- Align responses with the company's known culture, values, and technology stack
+- Use the company's actual terminology, product names, and market positioning
+- Do NOT fabricate company details — only use what is in the dossier`;
