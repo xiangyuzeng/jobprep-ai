@@ -7,6 +7,9 @@ import {
   InkSplash,
   InkRevealWrapper,
 } from "@/components/wuxia/WuxiaDecorations";
+import LiveDemo from "@/components/landing/LiveDemo";
+import StatsCounter from "@/components/landing/StatsCounter";
+import ProductMockups from "@/components/landing/ProductMockups";
 
 export default function LandingPage() {
   return (
@@ -122,7 +125,26 @@ export default function LandingPage() {
           >
             Master your craft. Sharpen your answers. Conquer every round.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center" style={{ animation: "inkReveal 1s ease-out 1.2s both" }}>
+
+          {/* ATS Stat Badge */}
+          <div
+            className="mt-5 inline-flex items-center gap-2 px-4 py-2"
+            style={{
+              background: "rgba(194, 54, 22, 0.08)",
+              borderRadius: 2,
+              border: "1px solid rgba(194, 54, 22, 0.15)",
+              animation: "inkReveal 1s ease-out 1s both",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vermillion)" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span className="text-sm font-semibold" style={{ color: "var(--vermillion)" }}>
+              ATS filtering eliminates up to 75% of applications before human review
+            </span>
+          </div>
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center" style={{ animation: "inkReveal 1s ease-out 1.2s both" }}>
             <Link
               href="/auth/signup"
               className="px-8 py-3.5 text-lg font-semibold transition-all"
@@ -136,7 +158,7 @@ export default function LandingPage() {
               Begin Your Training
             </Link>
             <a
-              href="#features"
+              href="#demo"
               className="px-8 py-3.5 text-lg font-semibold transition-colors"
               style={{
                 border: "1px solid var(--ink-faint)",
@@ -146,7 +168,7 @@ export default function LandingPage() {
                 textDecoration: "none",
               }}
             >
-              See How It Works
+              Try It Now
             </a>
           </div>
 
@@ -160,10 +182,28 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Ink Divider */}
+      {/* ============================================================
+         LIVE DEMO — "Test Your Readiness"
+         ============================================================ */}
       <InkDivider />
+      <section id="demo" className="py-16" style={{ background: "var(--paper-light)" }}>
+        <div className="max-w-4xl mx-auto px-4">
+          <InkRevealWrapper className="text-center mb-10">
+            <h2 className="font-cinzel text-3xl font-bold" style={{ color: "var(--ink-black)" }}>
+              Test Your Readiness
+            </h2>
+            <p className="mt-3 text-lg" style={{ color: "var(--ink-mid)", fontStyle: "italic" }}>
+              Paste any job description. See your match score instantly.
+            </p>
+          </InkRevealWrapper>
+          <LiveDemo />
+        </div>
+      </section>
 
-      {/* Features */}
+      {/* ============================================================
+         FEATURES — "The Path of Mastery" (existing)
+         ============================================================ */}
+      <InkDivider />
       <section id="features" className="py-20 paper-texture" style={{ background: "var(--paper-cream)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <InkRevealWrapper className="text-center mb-16">
@@ -259,11 +299,31 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Ink Divider */}
+      {/* ============================================================
+         PRODUCT MOCKUPS — "The Arsenal"
+         ============================================================ */}
       <InkDivider />
-
-      {/* How It Works */}
       <section className="py-20" style={{ background: "var(--paper-light)" }}>
+        <div className="max-w-6xl mx-auto px-4">
+          <InkRevealWrapper className="text-center mb-12">
+            <h2 className="font-cinzel text-3xl font-bold" style={{ color: "var(--ink-black)" }}>
+              The Arsenal
+            </h2>
+            <p className="mt-3 text-lg" style={{ color: "var(--ink-light)", fontStyle: "italic" }}>
+              Every weapon at your disposal.
+            </p>
+          </InkRevealWrapper>
+          <InkRevealWrapper delay={0.15}>
+            <ProductMockups />
+          </InkRevealWrapper>
+        </div>
+      </section>
+
+      {/* ============================================================
+         HOW IT WORKS — "The Way of Preparation" (existing)
+         ============================================================ */}
+      <InkDivider />
+      <section className="py-20 paper-texture" style={{ background: "var(--paper-cream)" }}>
         <div className="max-w-5xl mx-auto px-4">
           <InkRevealWrapper>
             <h2 className="font-cinzel text-3xl font-bold text-center mb-16" style={{ color: "var(--ink-black)" }}>
@@ -349,7 +409,146 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ============================================================
+         COMPARISON — "The Edge"
+         ============================================================ */}
+      <InkDivider />
+      <section className="py-20" style={{ background: "var(--paper-light)" }}>
+        <div className="max-w-4xl mx-auto px-4">
+          <InkRevealWrapper className="text-center mb-3">
+            <p
+              className="text-sm font-semibold tracking-wide uppercase"
+              style={{ color: "var(--vermillion)", letterSpacing: "0.1em" }}
+            >
+              ATS filtering eliminates up to 75% of applications
+            </p>
+          </InkRevealWrapper>
+          <InkRevealWrapper className="text-center mb-12">
+            <h2 className="font-cinzel text-3xl font-bold" style={{ color: "var(--ink-black)" }}>
+              The Edge
+            </h2>
+            <p className="mt-3 text-lg" style={{ color: "var(--ink-light)", fontStyle: "italic" }}>
+              One platform. Complete preparation.
+            </p>
+          </InkRevealWrapper>
+
+          <InkRevealWrapper delay={0.15}>
+            <div
+              style={{
+                borderRadius: 2,
+                overflow: "hidden",
+                border: "1px solid var(--paper-dark)",
+                boxShadow: "0 2px 8px rgba(26,26,26,0.06)",
+              }}
+            >
+              {/* Header Row */}
+              <div
+                className="grid grid-cols-3"
+                style={{ background: "var(--ink-dark)", color: "var(--paper-light)" }}
+              >
+                <div className="p-4 text-sm font-semibold" style={{ borderRight: "1px solid var(--ink-mid)" }}>
+                  Feature
+                </div>
+                <div
+                  className="p-4 text-sm font-semibold text-center font-cinzel"
+                  style={{
+                    borderRight: "1px solid var(--ink-mid)",
+                    color: "var(--vermillion)",
+                    background: "var(--ink-black)",
+                  }}
+                >
+                  JobPrep AI
+                </div>
+                <div className="p-4 text-sm font-semibold text-center" style={{ color: "var(--ink-faint)" }}>
+                  Other Tools
+                </div>
+              </div>
+
+              {/* Feature Rows */}
+              {[
+                { feature: "AI Resume Tailoring", us: true, them: "partial" as const },
+                { feature: "ATS Score Optimization", us: true, them: true as const },
+                { feature: "Interview Prep Board (40-80 Qs)", us: true, them: false as const },
+                { feature: "Combined Resume + Interview Pipeline", us: true, them: false as const },
+                { feature: "Speech Practice Analytics", us: true, them: false as const },
+                { feature: "Vulnerability Analysis", us: true, them: false as const },
+              ].map((row, i) => (
+                <div
+                  key={row.feature}
+                  className="grid grid-cols-3"
+                  style={{
+                    background: i % 2 === 0 ? "var(--paper-cream)" : "var(--paper-light)",
+                    borderTop: "1px solid var(--paper-dark)",
+                  }}
+                >
+                  <div
+                    className="p-3.5 text-sm"
+                    style={{ color: "var(--ink-dark)", borderRight: "1px solid var(--paper-dark)" }}
+                  >
+                    {row.feature}
+                  </div>
+                  <div className="p-3.5 text-center" style={{ borderRight: "1px solid var(--paper-dark)" }}>
+                    <svg className="w-5 h-5 mx-auto" viewBox="0 0 24 24" fill="none" stroke="var(--vermillion)" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div className="p-3.5 text-center">
+                    {row.them === true ? (
+                      <svg className="w-5 h-5 mx-auto" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : row.them === "partial" ? (
+                      <span className="text-xs font-medium" style={{ color: "var(--gold-accent)" }}>Partial</span>
+                    ) : (
+                      <svg className="w-5 h-5 mx-auto" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </InkRevealWrapper>
+
+          <InkRevealWrapper delay={0.3} className="mt-8 text-center">
+            <p className="text-sm" style={{ color: "var(--ink-mid)", lineHeight: 1.6 }}>
+              Most tools stop at resume optimization. JobPrep AI carries you through the entire
+              pipeline &mdash; from tailored resume to interview board to speech practice.
+            </p>
+          </InkRevealWrapper>
+        </div>
+      </section>
+
+      {/* ============================================================
+         SOCIAL PROOF — "Battle-Tested"
+         ============================================================ */}
+      <InkDivider />
+      <section className="py-20 paper-texture" style={{ background: "var(--paper-cream)" }}>
+        <div className="max-w-4xl mx-auto px-4">
+          <InkRevealWrapper className="text-center mb-12">
+            <h2 className="font-cinzel text-3xl font-bold" style={{ color: "var(--ink-black)" }}>
+              Battle-Tested
+            </h2>
+            <p className="mt-3 text-lg" style={{ color: "var(--ink-light)", fontStyle: "italic" }}>
+              Forged through real interview campaigns.
+            </p>
+          </InkRevealWrapper>
+          <StatsCounter />
+          <InkRevealWrapper delay={0.6} className="mt-12 text-center">
+            <SealStamp size={32} className="mx-auto mb-3" style={{ opacity: 0.6 }} />
+            <p
+              className="text-base max-w-lg mx-auto"
+              style={{ color: "var(--ink-mid)", fontStyle: "italic", lineHeight: 1.7 }}
+            >
+              Built by a DBA who has interviewed at Temu, SHEIN, and Luckin Coffee.
+            </p>
+          </InkRevealWrapper>
+        </div>
+      </section>
+
+      {/* ============================================================
+         CTA (existing)
+         ============================================================ */}
       <InkRevealWrapper>
         <section
           className="py-20 paper-texture relative overflow-hidden"
