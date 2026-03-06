@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import dynamic from "next/dynamic";
+
+const SpeechPracticePanel = dynamic(() => import("@/components/interview/SpeechPracticePanel"), { ssr: false });
 
 // ---------------------------------------------------------------------------
 // Types
@@ -252,6 +255,7 @@ export default function InterviewBoardPage() {
   const [activeQtypeFilter, setActiveQtypeFilter] = useState<string | null>(null);
   const [showUndoneOnly, setShowUndoneOnly] = useState(false);
   const [modalCardNum, setModalCardNum] = useState<number | null>(null);
+  const [practiceMode, setPracticeMode] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
@@ -514,6 +518,7 @@ export default function InterviewBoardPage() {
       if (modalCardNum === null) return;
       if (e.key === "Escape") {
         setModalCardNum(null);
+        setPracticeMode(false);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         navigateModal(-1);
@@ -920,7 +925,7 @@ export default function InterviewBoardPage() {
       {/* ================================================================= */}
       {modalCardNum !== null && currentModalCard && (
         <div
-          onClick={(e) => { if (e.target === e.currentTarget) setModalCardNum(null); }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setModalCardNum(null); setPracticeMode(false); } }}
           style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)" }}
         >
           <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 820, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", border: "1px solid #e0e0e0", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", animation: "modalIn 0.25s ease-out" }}>
@@ -939,7 +944,7 @@ export default function InterviewBoardPage() {
                   </span>
                 </div>
                 <button
-                  onClick={() => setModalCardNum(null)}
+                  onClick={() => { setModalCardNum(null); setPracticeMode(false); }}
                   style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid #ddd", background: "#fff", color: "#999", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   ✕
@@ -950,9 +955,14 @@ export default function InterviewBoardPage() {
               </h2>
             </div>
 
-            {/* Modal body — rich answer */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px", background: "#fff" }}>
-              {currentModalCard.a ? (
+            {/* Modal body — rich answer or practice panel */}
+            <div style={{ flex: 1, overflowY: "auto", padding: practiceMode ? "0" : "20px 24px", background: "#fff" }}>
+              {practiceMode ? (
+                <SpeechPracticePanel
+                  question={currentModalCard.q}
+                  onBack={() => setPracticeMode(false)}
+                />
+              ) : currentModalCard.a ? (
                 renderAnswer(currentModalCard.a, currentModalCard.modColor)
               ) : (
                 <div style={{ color: "#999", fontStyle: "italic", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
@@ -964,27 +974,45 @@ export default function InterviewBoardPage() {
 
             {/* Modal footer */}
             <div style={{ padding: "12px 20px", borderTop: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "#FAFAF8" }}>
-              <button
-                onClick={() => toggleCardComplete(currentModalCard.num)}
-                style={{
-                  padding: "7px 16px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: completedCards.has(currentModalCard.num) ? "#E8F5E9" : "#f5f5f0",
-                  color: completedCards.has(currentModalCard.num) ? "#2E7D32" : "#888",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-              >
-                {completedCards.has(currentModalCard.num) ? "✓ Reviewed" : "○ Mark as Reviewed"}
-              </button>
               <div style={{ display: "flex", gap: 6 }}>
-                <NavBtn onClick={() => navigateModal(-1)}>← Prev</NavBtn>
-                <NavBtn onClick={() => navigateModal(1)}>Next →</NavBtn>
                 <button
-                  onClick={() => setModalCardNum(null)}
+                  onClick={() => toggleCardComplete(currentModalCard.num)}
+                  style={{
+                    padding: "7px 16px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: completedCards.has(currentModalCard.num) ? "#E8F5E9" : "#f5f5f0",
+                    color: completedCards.has(currentModalCard.num) ? "#2E7D32" : "#888",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {completedCards.has(currentModalCard.num) ? "✓ Reviewed" : "○ Mark as Reviewed"}
+                </button>
+                <button
+                  onClick={() => setPracticeMode(!practiceMode)}
+                  style={{
+                    padding: "7px 16px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: practiceMode ? "#FFF3E0" : "#f5f5f0",
+                    color: practiceMode ? "#E65100" : "#888",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {practiceMode ? "🎤 Practicing" : "🎤 Practice"}
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <NavBtn onClick={() => { setPracticeMode(false); navigateModal(-1); }}>← Prev</NavBtn>
+                <NavBtn onClick={() => { setPracticeMode(false); navigateModal(1); }}>Next →</NavBtn>
+                <button
+                  onClick={() => { setModalCardNum(null); setPracticeMode(false); }}
                   style={{ padding: "7px 18px", borderRadius: 8, border: "none", background: currentModalCard.modColor, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                 >
                   Close
