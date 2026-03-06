@@ -292,3 +292,37 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ success: true });
 }
+
+// DELETE /api/simulator/sessions?id=xxx — delete a simulator session
+export async function DELETE(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get("id");
+
+  if (!sessionId) {
+    return NextResponse.json(
+      { error: "Session ID required" },
+      { status: 400 }
+    );
+  }
+
+  const { error } = await supabase
+    .from("simulator_sessions")
+    .delete()
+    .eq("id", sessionId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}

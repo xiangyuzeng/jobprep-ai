@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -85,10 +86,29 @@ function formatDate(iso: string): string {
 
 export default function SimulatorPageClient({
   boards,
-  pastSessions,
+  pastSessions: initialPastSessions,
   preselectedBoardId,
 }: Props) {
   const sim = useInterviewSimulator();
+  const [pastSessions, setPastSessions] = useState(initialPastSessions);
+
+  const handleDeleteSession = async (e: React.MouseEvent, session: PastSession) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm(`Delete "${session.role} at ${session.company_name}" session? This cannot be undone.`)) return;
+
+    try {
+      const res = await fetch(`/api/simulator/sessions?id=${session.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setPastSessions((prev) => prev.filter((s) => s.id !== session.id));
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete session");
+      }
+    } catch {
+      alert("Failed to delete session");
+    }
+  };
 
   const {
     phase,
@@ -145,81 +165,116 @@ export default function SimulatorPageClient({
               }}
             >
               {pastSessions.map((s, i) => (
-                <Link
+                <div
                   key={s.id}
-                  href={`/dashboard/simulator/${s.id}`}
+                  className="group"
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "12px 14px",
+                    position: "relative",
                     borderBottom:
                       i < pastSessions.length - 1
                         ? "1px solid var(--paper-dark)"
                         : "none",
-                    textDecoration: "none",
-                    gap: 12,
                   }}
                 >
-                  {s.overall_score !== null ? (
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "50%",
-                        background: scoreColor(s.overall_score),
-                        color: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {s.overall_score}
+                  <Link
+                    href={`/dashboard/simulator/${s.id}`}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "12px 14px",
+                      textDecoration: "none",
+                      gap: 12,
+                    }}
+                  >
+                    {s.overall_score !== null ? (
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: "50%",
+                          background: scoreColor(s.overall_score),
+                          color: "#fff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {s.overall_score}
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: "50%",
+                          background: "var(--paper-dark)",
+                          color: "var(--ink-light)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {s.status === "in_progress" ? "..." : "—"}
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: "var(--ink-black)",
+                          fontFamily: "'Crimson Pro', Georgia, serif",
+                        }}
+                      >
+                        {s.role} at {s.company_name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--ink-light)",
+                          marginTop: 2,
+                        }}
+                      >
+                        {s.question_count} questions &middot;{" "}
+                        {s.interviewer_mode} &middot; {formatDate(s.created_at)}
+                      </div>
                     </div>
-                  ) : (
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "50%",
-                        background: "var(--paper-dark)",
-                        color: "var(--ink-light)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 10,
-                        fontWeight: 600,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {s.status === "in_progress" ? "..." : "—"}
-                    </div>
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: "var(--ink-black)",
-                        fontFamily: "'Crimson Pro', Georgia, serif",
-                      }}
-                    >
-                      {s.role} at {s.company_name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "var(--ink-light)",
-                        marginTop: 2,
-                      }}
-                    >
-                      {s.question_count} questions &middot;{" "}
-                      {s.interviewer_mode} &middot; {formatDate(s.created_at)}
-                    </div>
-                  </div>
-                </Link>
+                  </Link>
+                  <button
+                    onClick={(e) => handleDeleteSession(e, s)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    style={{
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      padding: 4,
+                      borderRadius: 4,
+                      border: "none",
+                      background: "transparent",
+                      color: "var(--ink-light)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "#c23616";
+                      e.currentTarget.style.background = "rgba(194,54,22,0.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "var(--ink-light)";
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                    title="Delete session"
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
           </div>

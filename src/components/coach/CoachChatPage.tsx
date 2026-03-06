@@ -288,6 +288,30 @@ export default function CoachChatPage({
     setSidebarOpen(false);
   }, []);
 
+  // ── Delete session ──
+  const handleDeleteSession = useCallback(
+    async (sid: string) => {
+      try {
+        const res = await fetch(`/api/coach/sessions?id=${sid}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setSessions((prev) => prev.filter((s) => s.id !== sid));
+          // If we deleted the current session, reset to new chat
+          if (sessionId === sid) {
+            handleNewChat();
+          }
+        } else {
+          const data = await res.json();
+          alert(data.error || "Failed to delete session");
+        }
+      } catch {
+        alert("Failed to delete session");
+      }
+    },
+    [sessionId, handleNewChat]
+  );
+
   // ── Select existing session ──
   const handleSelectSession = useCallback(
     async (sid: string) => {
@@ -369,6 +393,7 @@ export default function CoachChatPage({
             onModeChange={handleModeChange}
             sessions={sessions}
             onSelectSession={handleSelectSession}
+            onDeleteSession={handleDeleteSession}
             onNewChat={handleNewChat}
             onQuickAction={(prompt) => {
               if (currentMode) {
@@ -383,7 +408,7 @@ export default function CoachChatPage({
               })),
               boards: boards.map((b) => ({
                 id: b.id,
-                label: `${b.company_name} \u2014 ${b.role}`,
+                label: `${b.company_name} — ${b.role}`,
               })),
             }}
             selectedContext={{

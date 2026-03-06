@@ -13,6 +13,7 @@ interface Props {
   onModeChange: (mode: CoachMode) => void;
   sessions: CoachSession[];
   onSelectSession: (sessionId: string) => void;
+  onDeleteSession?: (sessionId: string) => void;
   onNewChat: () => void;
   onQuickAction: (prompt: string) => void;
   contextOptions: {
@@ -57,6 +58,7 @@ export default function CoachSidebar({
   onModeChange,
   sessions,
   onSelectSession,
+  onDeleteSession,
   onNewChat,
   onQuickAction,
   contextOptions,
@@ -253,32 +255,52 @@ export default function CoachSidebar({
             {sessions.map((session) => {
               const modeInfo = MODE_LABELS[session.coach_mode];
               return (
-                <button
-                  key={session.id}
-                  onClick={() => onSelectSession(session.id)}
-                  className="w-full text-left text-xs px-2 py-1.5 rounded-sm transition-colors cursor-pointer"
-                  style={{
-                    background:
-                      currentSessionId === session.id
-                        ? "rgba(255,255,255,0.7)"
-                        : "transparent",
-                    color: "var(--ink-black)",
-                  }}
-                  title={session.title || "Untitled"}
-                >
-                  <div className="flex items-center gap-1">
-                    <span>{modeInfo?.icon}</span>
-                    <span className="truncate flex-1">
-                      {session.title || "Untitled"}
-                    </span>
-                  </div>
-                  <div
-                    className="text-[10px] mt-0.5"
-                    style={{ color: "var(--ink-light)" }}
+                <div key={session.id} className="group relative">
+                  <button
+                    onClick={() => onSelectSession(session.id)}
+                    className="w-full text-left text-xs px-2 py-1.5 rounded-sm transition-colors cursor-pointer"
+                    style={{
+                      background:
+                        currentSessionId === session.id
+                          ? "rgba(255,255,255,0.7)"
+                          : "transparent",
+                      color: "var(--ink-black)",
+                    }}
+                    title={session.title || "Untitled"}
                   >
-                    {timeAgo(session.updated_at)}
-                  </div>
-                </button>
+                    <div className="flex items-center gap-1">
+                      <span>{modeInfo?.icon}</span>
+                      <span className="truncate flex-1">
+                        {session.title || "Untitled"}
+                      </span>
+                    </div>
+                    <div
+                      className="text-[10px] mt-0.5"
+                      style={{ color: "var(--ink-light)" }}
+                    >
+                      {timeAgo(session.updated_at)}
+                    </div>
+                  </button>
+                  {onDeleteSession && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete "${session.title || "Untitled"}" session? This cannot be undone.`)) {
+                          onDeleteSession(session.id);
+                        }
+                      }}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded cursor-pointer"
+                      style={{ color: "var(--ink-light)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#c23616")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-light)")}
+                      title="Delete session"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>

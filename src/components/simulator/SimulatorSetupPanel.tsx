@@ -196,7 +196,7 @@ export default function SimulatorSetupPanel({
           <option value="">Select an interview board...</option>
           {boards.map((b) => (
             <option key={b.id} value={b.id}>
-              {b.company_name} \u2014 {b.role} ({b.round_type})
+              {b.company_name} — {b.role} ({b.round_type})
             </option>
           ))}
         </select>
