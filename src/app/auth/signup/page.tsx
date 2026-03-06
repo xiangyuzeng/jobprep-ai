@@ -50,18 +50,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-sm border border-gray-200">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--paper-light)" }}>
+      <div className="w-full max-w-md p-8 rounded-sm shadow-sm border" style={{ background: "var(--paper-cream)", borderColor: "var(--paper-dark)" }}>
         <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold text-gray-900">
+          <Link href="/" className="font-cinzel text-2xl font-bold" style={{ color: "var(--ink-black)", textDecoration: "none" }}>
             JobPrep AI
           </Link>
-          <p className="text-gray-500 mt-2">Create your account</p>
+          <p className="mt-2" style={{ color: "var(--ink-light)" }}>Begin your journey</p>
         </div>
 
         <button
           onClick={handleGoogleSignup}
-          className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors mb-6"
+          className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-300 rounded-sm hover:bg-[var(--paper-cream)] transition-colors mb-6"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -77,7 +77,7 @@ export default function SignupPage() {
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">or</span>
+            <span className="px-2 text-gray-500" style={{ background: "var(--paper-cream)" }}>or</span>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export default function SignupPage() {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none"
               placeholder="John Doe"
               required
             />
@@ -103,7 +103,7 @@ export default function SignupPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none"
               placeholder="you@example.com"
               required
             />
@@ -116,7 +116,7 @@ export default function SignupPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none"
               placeholder="At least 6 characters"
               required
               minLength={6}
@@ -130,7 +130,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
+            className="w-full py-2.5 px-4 bg-[var(--vermillion)] text-white rounded-sm hover:bg-[var(--vermillion-dark)] disabled:opacity-50 transition-colors font-medium"
           >
             {loading ? "Creating account..." : "Create account"}
           </button>
@@ -138,7 +138,7 @@ export default function SignupPage() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{" "}
-          <Link href="/auth/login" className="text-blue-600 hover:underline">
+          <Link href="/auth/login" className="text-[var(--vermillion)] hover:underline">
             Sign in
           </Link>
         </p>

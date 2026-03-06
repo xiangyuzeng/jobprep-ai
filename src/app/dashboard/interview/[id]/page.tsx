@@ -43,29 +43,25 @@ interface Board {
 // Constants — Kanban palette
 // ---------------------------------------------------------------------------
 
-const MODULE_COLORS = [
-  "#D84315", "#1565C0", "#2E7D32", "#6A1B9A",
-  "#C62828", "#00838F", "#EF6C00", "#283593",
-  "#4E342E", "#37474F",
-];
+const MODULE_COLORS = ["#1a1a1a", "#c23616", "#2d6a4f", "#c9a84c", "#2d2d2d", "#555555", "#a02010", "#40916c", "#888888", "#b89840"];
 
 const MODULE_ICONS = [
   "🧠", "💡", "🛠️", "📊", "🎯", "🔑", "🚀", "🏗️", "📋", "⚙️",
 ];
 
-const QTYPE_INFO: Record<string, { color: string; bg: string; icon: string; desc: string; label: string }> = {
-  B: { color: "#E65100", bg: "#FFF3E0", icon: "💬", desc: "Behavioral", label: "Behavioral Question" },
-  T: { color: "#1565C0", bg: "#E3F2FD", icon: "⚙️", desc: "Technical", label: "Technical Question" },
-  P: { color: "#2E7D32", bg: "#E8F5E9", icon: "💡", desc: "Problem", label: "Problem Solving" },
-  C: { color: "#6A1B9A", bg: "#F3E5F5", icon: "🎭", desc: "Case", label: "Case Study" },
-  S: { color: "#00838F", bg: "#E0F7FA", icon: "🔍", desc: "Scenario", label: "Scenario Question" },
-  L: { color: "#C62828", bg: "#FFEBEE", icon: "👥", desc: "Leadership", label: "Leadership Question" },
+const QTYPE_INFO: Record<string, {color:string;bg:string;icon:string;desc:string}> = {
+  B: { color: "#1a1a1a", bg: "#ede6d6", icon: "\u{1F4AC}", desc: "Behavioral" },
+  T: { color: "#c23616", bg: "#fdf2f0", icon: "\u2699\uFE0F", desc: "Technical" },
+  P: { color: "#2d6a4f", bg: "#edf5f0", icon: "\u{1F4A1}", desc: "Problem" },
+  C: { color: "#c9a84c", bg: "#f8f3e6", icon: "\u{1F3AD}", desc: "Case" },
+  S: { color: "#555555", bg: "#f0ede7", icon: "\u{1F50D}", desc: "Scenario" },
+  L: { color: "#a02010", bg: "#fdf2f0", icon: "\u{1F465}", desc: "Leadership" },
 };
 
-const ACCENT = "#D84315";
+const ACCENT = "#c23616";
 
 function qt(t: string) {
-  return QTYPE_INFO[t] || { color: "#666", bg: "#f5f5f5", icon: "❓", desc: t, label: t };
+  return QTYPE_INFO[t] || { color: "#666", bg: "#f5f5f5", icon: "❓", desc: t };
 }
 
 // ---------------------------------------------------------------------------
@@ -84,7 +80,7 @@ function renderAnswer(text: string, modColor: string) {
         // Warning header 【⚠️...】
         if (/^【⚠️/.test(t))
           return (
-            <p key={li} style={{ fontSize: 14, fontWeight: 700, color: "#B71C1C", marginTop: 20, marginBottom: 6, borderLeft: "3px solid #E53935", paddingLeft: 10, background: "#FFF8E1", padding: "8px 12px", borderRadius: "0 6px 6px 0" }}>
+            <p key={li} style={{ fontSize: 14, fontWeight: 700, color: "#B71C1C", marginTop: 20, marginBottom: 6, borderLeft: "3px solid #E53935", paddingLeft: 10, background: "#f8f3e6", padding: "8px 12px", borderRadius: "0 6px 6px 0" }}>
               {t}
             </p>
           );
@@ -116,7 +112,7 @@ function renderAnswer(text: string, modColor: string) {
         // Bullet points
         if (/^[•·\-–►]/.test(t))
           return (
-            <p key={li} style={{ fontSize: 13.5, lineHeight: 1.8, color: "#444", paddingLeft: 14, position: "relative" }}>
+            <p key={li} style={{ fontSize: 13.5, lineHeight: 1.8, color: "#2d2d2d", paddingLeft: 14, position: "relative" }}>
               <span style={{ position: "absolute", left: 0, color: modColor, fontWeight: 700 }}>·</span>
               {t.replace(/^[•·\-–►]\s*/, "")}
             </p>
@@ -134,7 +130,7 @@ function renderAnswer(text: string, modColor: string) {
         if (/^.{2,25}:/.test(t) && t.indexOf(":") < 26) {
           const colonIdx = t.indexOf(":");
           return (
-            <p key={li} style={{ fontSize: 13.5, lineHeight: 1.8, color: "#444", marginTop: 4 }}>
+            <p key={li} style={{ fontSize: 13.5, lineHeight: 1.8, color: "#2d2d2d", marginTop: 4 }}>
               <span style={{ color: modColor, fontWeight: 600 }}>{t.slice(0, colonIdx + 1)}</span>
               {t.slice(colonIdx + 1)}
             </p>
@@ -143,7 +139,7 @@ function renderAnswer(text: string, modColor: string) {
 
         // Regular text
         return (
-          <p key={li} style={{ fontSize: 13.5, lineHeight: 1.9, color: "#444", margin: "2px 0" }}>
+          <p key={li} style={{ fontSize: 13.5, lineHeight: 1.9, color: "#2d2d2d", margin: "2px 0" }}>
             {t}
           </p>
         );
@@ -164,7 +160,7 @@ function highlightText(text: string, query: string) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark style={{ background: "#FFF176", borderRadius: 2, padding: "0 1px" }}>
+      <mark style={{ background: "rgba(194,54,22,0.15)", borderRadius: 2, padding: "0 1px" }}>
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
@@ -193,7 +189,7 @@ function Chip({ children, active, onClick, color }: {
         cursor: "pointer",
         whiteSpace: "nowrap",
         border: active ? "1px solid " + color : "1px solid #e0e0e0",
-        background: active ? color + "14" : "#fff",
+        background: active ? color + "14" : "#f5f0e8",
         color: active ? color : "#999",
         transition: "all 0.15s",
       }}
@@ -215,7 +211,7 @@ function NavBtn({ children, onClick }: { children: React.ReactNode; onClick: () 
         padding: "7px 14px",
         borderRadius: 8,
         border: "1px solid #ddd",
-        background: "#fff",
+        background: "#f5f0e8",
         color: "#666",
         fontSize: 12,
         cursor: "pointer",
@@ -226,7 +222,7 @@ function NavBtn({ children, onClick }: { children: React.ReactNode; onClick: () 
         e.currentTarget.style.color = "#333";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#fff";
+        e.currentTarget.style.background = "#f5f0e8";
         e.currentTarget.style.color = "#666";
       }}
     >
@@ -565,7 +561,7 @@ export default function InterviewBoardPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#F5F5F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#faf7f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ width: 40, height: 40, border: "3px solid #e8e8e4", borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
           <p style={{ color: "#888", fontSize: 14 }}>Loading interview board...</p>
@@ -577,7 +573,7 @@ export default function InterviewBoardPage() {
 
   if (error || !board) {
     return (
-      <div style={{ minHeight: "100vh", background: "#F5F5F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#faf7f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
           <p style={{ color: "#C62828", marginBottom: 16, fontSize: 15 }}>{error || "Board not found"}</p>
           <button
@@ -594,11 +590,11 @@ export default function InterviewBoardPage() {
   const modalIdx = modalCardNum !== null ? visibleCardNums.indexOf(modalCardNum) : -1;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F5F0", color: "#1a1a1a", fontFamily: "'Inter', -apple-system, 'Segoe UI', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#faf7f0", color: "#1a1a1a", fontFamily: "'Crimson Pro', Georgia, serif" }}>
       {/* ================================================================= */}
       {/* Sticky frosted-glass header                                       */}
       {/* ================================================================= */}
-      <header style={{ position: "sticky", top: 0, zIndex: 40, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(16px)", borderBottom: "1px solid #e0e0e0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 40, background: "rgba(237,230,214,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid #e0e0e0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "14px 20px" }}>
           {/* Title row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
@@ -613,7 +609,7 @@ export default function InterviewBoardPage() {
                 </svg>
               </button>
               <div>
-                <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, letterSpacing: -0.5, color: ACCENT }}>
+                <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, letterSpacing: -0.5, color: ACCENT, fontFamily: "'Cinzel Decorative', serif" }}>
                   {board.company_name} — {board.role}
                 </h1>
                 <p style={{ margin: "3px 0 0", fontSize: 11, color: "#888", letterSpacing: 0.5 }}>
@@ -628,15 +624,15 @@ export default function InterviewBoardPage() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {savingProgress && <span style={{ fontSize: 10, color: "#bbb" }}>Saving...</span>}
-              <div style={{ width: 120, height: 6, borderRadius: 3, background: "#e8e8e4", overflow: "hidden" }}>
-                <div style={{ height: "100%", borderRadius: 3, background: completionPct === 100 ? "#2E7D32" : ACCENT, width: completionPct + "%", transition: "width 0.5s ease" }} />
+              <div style={{ width: 120, height: 6, borderRadius: 3, background: "#d4c9b5", overflow: "hidden" }}>
+                <div style={{ height: "100%", borderRadius: 3, background: completionPct === 100 ? "#2d6a4f" : ACCENT, width: completionPct + "%", transition: "width 0.5s ease" }} />
               </div>
-              <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: completionPct === 100 ? "#2E7D32" : ACCENT }}>
+              <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: completionPct === 100 ? "#2d6a4f" : ACCENT }}>
                 {completedCount}/{totalQuestions}
               </span>
               <button
                 onClick={() => setShowStats(!showStats)}
-                style={{ padding: "3px 8px", borderRadius: 6, border: "1px solid #ddd", background: showStats ? "#FFF3E0" : "#fff", color: showStats ? ACCENT : "#888", fontSize: 11, cursor: "pointer" }}
+                style={{ padding: "3px 8px", borderRadius: 6, border: "1px solid #ddd", background: showStats ? "#FFF3E0" : "#f5f0e8", color: showStats ? ACCENT : "#888", fontSize: 11, cursor: "pointer" }}
               >
                 📊
               </button>
@@ -652,7 +648,7 @@ export default function InterviewBoardPage() {
                 placeholder="Search questions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ width: "100%", padding: "6px 28px 6px 30px", borderRadius: 8, border: "1px solid #ddd", background: "#fff", color: "#1a1a1a", fontSize: 12, outline: "none" }}
+                style={{ width: "100%", padding: "6px 28px 6px 30px", borderRadius: 8, border: "1px solid #ddd", background: "#f5f0e8", color: "#1a1a1a", fontSize: 12, outline: "none" }}
               />
               <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", fontSize: 12, opacity: 0.4 }}>🔍</span>
               {searchQuery && (
@@ -728,7 +724,7 @@ export default function InterviewBoardPage() {
                       textAlign: "center",
                       padding: "8px 6px",
                       borderRadius: 10,
-                      background: "#fff",
+                      background: "#f5f0e8",
                       border: activeModuleFilter === mod.title ? "2px solid " + mod.color : "1px solid #eee",
                       transition: "all 0.2s",
                     }}
@@ -769,8 +765,8 @@ export default function InterviewBoardPage() {
                   alignItems: "center",
                   gap: 10,
                   padding: "12px 14px",
-                  borderRadius: 14,
-                  background: "#fff",
+                  borderRadius: 2,
+                  background: "#f5f0e8",
                   border: "1px solid #e8e8e4",
                   cursor: "pointer",
                   textAlign: "left",
@@ -784,18 +780,18 @@ export default function InterviewBoardPage() {
                 <span style={{ width: 4, height: 28, borderRadius: 2, background: mod.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 22 }}>{mod.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", fontFamily: "'Cinzel Decorative', serif" }}>
                     {searchQuery ? highlightText(mod.title, searchQuery) : mod.title}
                   </div>
                   <div style={{ fontSize: 10, color: "#999", marginTop: 2 }}>
                     {board.round_type} · {modTotal} questions
                   </div>
                 </div>
-                <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: modDone === modTotal && modDone > 0 ? "#2E7D32" : "#999", fontWeight: 600 }}>
+                <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: modDone === modTotal && modDone > 0 ? "#2d6a4f" : "#999", fontWeight: 600 }}>
                   {modDone}/{modTotal}
                 </span>
-                <div style={{ width: 52, height: 4, borderRadius: 2, background: "#e8e8e4" }}>
-                  <div style={{ height: "100%", borderRadius: 2, background: modDone === modTotal && modDone > 0 ? "#2E7D32" : mod.color, width: modPct + "%", transition: "width 0.3s" }} />
+                <div style={{ width: 52, height: 4, borderRadius: 2, background: "#d4c9b5" }}>
+                  <div style={{ height: "100%", borderRadius: 2, background: modDone === modTotal && modDone > 0 ? "#2d6a4f" : mod.color, width: modPct + "%", transition: "width 0.3s" }} />
                 </div>
               </button>
 
@@ -814,10 +810,10 @@ export default function InterviewBoardPage() {
                         onClick={() => { if (!isCardGenerating) setModalCardNum(c.num); }}
                         style={{
                           cursor: isCardGenerating ? "default" : "pointer",
-                          background: "#fff",
-                          borderRadius: 12,
-                          border: "1px solid " + (isDone ? "#A5D6A7" : "#e8e8e4"),
-                          borderLeft: "3px solid " + (isDone ? "#2E7D32" : mod.color),
+                          background: "#f5f0e8",
+                          borderRadius: 2,
+                          border: "1px solid " + (isDone ? "#8fc4a8" : "#d4c9b5"),
+                          borderLeft: "3px solid " + (isDone ? "#2d6a4f" : mod.color),
                           padding: "10px 14px",
                           transition: "all 0.2s",
                           position: "relative",
@@ -850,9 +846,9 @@ export default function InterviewBoardPage() {
                               width: 20,
                               height: 20,
                               borderRadius: 10,
-                              border: "2px solid " + (isDone ? "#2E7D32" : "#ddd"),
-                              background: isDone ? "#E8F5E9" : "transparent",
-                              color: isDone ? "#2E7D32" : "transparent",
+                              border: "2px solid " + (isDone ? "#2d6a4f" : "#ddd"),
+                              background: isDone ? "#edf5f0" : "transparent",
+                              color: isDone ? "#2d6a4f" : "transparent",
                               fontSize: 11,
                               cursor: "pointer",
                               display: "flex",
@@ -873,7 +869,7 @@ export default function InterviewBoardPage() {
 
                         {/* Title match indicator */}
                         {searchQuery && mod.titleHits?.has(c.num) && (
-                          <span style={{ display: "inline-block", marginTop: 4, fontSize: 9, padding: "1px 5px", borderRadius: 3, background: "#FFF8E1", color: "#F57F17", fontWeight: 600 }}>
+                          <span style={{ display: "inline-block", marginTop: 4, fontSize: 9, padding: "1px 5px", borderRadius: 3, background: "#f8f3e6", color: "#c9a84c", fontWeight: 600 }}>
                             Title match
                           </span>
                         )}
@@ -926,15 +922,15 @@ export default function InterviewBoardPage() {
       {modalCardNum !== null && currentModalCard && (
         <div
           onClick={(e) => { if (e.target === e.currentTarget) { setModalCardNum(null); setPracticeMode(false); } }}
-          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)" }}
+          style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, background: "rgba(26,26,26,0.4)", backdropFilter: "blur(6px)" }}
         >
-          <div style={{ background: "#fff", borderRadius: 20, width: "100%", maxWidth: 820, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", border: "1px solid #e0e0e0", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", animation: "modalIn 0.25s ease-out" }}>
+          <div style={{ background: "#f5f0e8", borderRadius: 4, width: "100%", maxWidth: 820, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", border: "1px solid #e0e0e0", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", animation: "modalIn 0.25s ease-out" }}>
             {/* Modal header */}
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid #eee", flexShrink: 0, background: "#FAFAF8" }}>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #eee", flexShrink: 0, background: "#ede6d6" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: qt(currentModalCard.qtype).bg, color: qt(currentModalCard.qtype).color, fontWeight: 600 }}>
-                    {qt(currentModalCard.qtype).icon} {qt(currentModalCard.qtype).label}
+                    {qt(currentModalCard.qtype).icon} {qt(currentModalCard.qtype).desc}
                   </span>
                   <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: currentModalCard.modColor + "12", color: currentModalCard.modColor, fontWeight: 500 }}>
                     {currentModalCard.modIcon} {currentModalCard.modName}
@@ -945,7 +941,7 @@ export default function InterviewBoardPage() {
                 </div>
                 <button
                   onClick={() => { setModalCardNum(null); setPracticeMode(false); }}
-                  style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid #ddd", background: "#fff", color: "#999", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid #ddd", background: "#f5f0e8", color: "#999", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   ✕
                 </button>
@@ -956,7 +952,7 @@ export default function InterviewBoardPage() {
             </div>
 
             {/* Modal body — rich answer or practice panel */}
-            <div style={{ flex: 1, overflowY: "auto", padding: practiceMode ? "0" : "20px 24px", background: "#fff" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: practiceMode ? "0" : "20px 24px", background: "#f5f0e8" }}>
               {practiceMode ? (
                 <SpeechPracticePanel
                   question={currentModalCard.q}
@@ -973,7 +969,7 @@ export default function InterviewBoardPage() {
             </div>
 
             {/* Modal footer */}
-            <div style={{ padding: "12px 20px", borderTop: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "#FAFAF8" }}>
+            <div style={{ padding: "12px 20px", borderTop: "1px solid #eee", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, background: "#ede6d6" }}>
               <div style={{ display: "flex", gap: 6 }}>
                 <button
                   onClick={() => toggleCardComplete(currentModalCard.num)}
@@ -981,8 +977,8 @@ export default function InterviewBoardPage() {
                     padding: "7px 16px",
                     borderRadius: 8,
                     border: "none",
-                    background: completedCards.has(currentModalCard.num) ? "#E8F5E9" : "#f5f5f0",
-                    color: completedCards.has(currentModalCard.num) ? "#2E7D32" : "#888",
+                    background: completedCards.has(currentModalCard.num) ? "#edf5f0" : "#f5f5f0",
+                    color: completedCards.has(currentModalCard.num) ? "#2d6a4f" : "#888",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
@@ -1037,9 +1033,9 @@ export default function InterviewBoardPage() {
         @keyframes modalIn { from { transform: translateY(16px) scale(0.97); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
         div:hover > .view-hint { opacity: 1 !important; }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        ::-webkit-scrollbar-track { background: #ede6d6; }
+        ::-webkit-scrollbar-thumb { background: #c4c4c4; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #888888; }
       `}</style>
     </div>
   );

@@ -27,9 +27,9 @@ interface SpeechPracticePanelProps {
 // ---------------------------------------------------------------------------
 
 function wpmColor(wpm: number): string {
-  if (wpm >= 120 && wpm <= 160) return "#2E7D32";
-  if (wpm < 90 || wpm > 180) return "#C62828";
-  return "#EF6C00";
+  if (wpm >= 120 && wpm <= 160) return "#2d6a4f";
+  if (wpm < 90 || wpm > 180) return "#c23616";
+  return "#c9a84c";
 }
 
 function wpmLabel(wpm: number): string {
@@ -39,9 +39,9 @@ function wpmLabel(wpm: number): string {
 }
 
 function fillerColor(count: number): string {
-  if (count <= 2) return "#2E7D32";
-  if (count <= 5) return "#EF6C00";
-  return "#C62828";
+  if (count <= 2) return "#2d6a4f";
+  if (count <= 5) return "#c9a84c";
+  return "#c23616";
 }
 
 function fillerLabel(count: number): string {
@@ -51,9 +51,9 @@ function fillerLabel(count: number): string {
 }
 
 function confColor(score: number): string {
-  if (score >= 70) return "#2E7D32";
-  if (score >= 50) return "#EF6C00";
-  return "#C62828";
+  if (score >= 70) return "#2d6a4f";
+  if (score >= 50) return "#c9a84c";
+  return "#c23616";
 }
 
 function confLabel(score: number): string {
@@ -90,7 +90,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
         </p>
         <button
           onClick={onBack}
-          style={{ padding: "8px 20px", borderRadius: 8, border: "1px solid #ddd", background: "#fff", color: "#666", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+          style={{ padding: "8px 20px", borderRadius: 8, border: "1px solid #ddd", background: "#f5f0e8", color: "#666", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
         >
           Back to Answer
         </button>
@@ -109,21 +109,21 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
             height: 80,
             borderRadius: "50%",
             border: "none",
-            background: isListening ? "#C62828" : "#f5f5f0",
+            background: isListening ? "#c23616" : "#faf7f0",
             color: isListening ? "#fff" : "#888",
             fontSize: 28,
             cursor: "pointer",
             position: "relative",
             transition: "all 0.3s",
             boxShadow: isListening
-              ? "0 0 0 6px rgba(198,40,40,0.2), 0 0 0 12px rgba(198,40,40,0.1)"
+              ? "0 0 0 6px rgba(194,54,22,0.2), 0 0 0 12px rgba(194,54,22,0.1)"
               : "0 2px 8px rgba(0,0,0,0.08)",
             animation: isListening ? "pulse 2s infinite" : "none",
           }}
         >
           🎤
         </button>
-        <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: isListening ? "#C62828" : "#888" }}>
+        <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: isListening ? "#c23616" : "#888" }}>
           {isListening ? "Listening... Click to stop" : hasData ? "Click to try again" : "Click to start speaking"}
         </div>
         {hasData && !isListening && (
@@ -147,7 +147,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
           {/* WPM */}
           <div style={{
             textAlign: "center", padding: "12px 8px", borderRadius: 12,
-            background: "#fff", border: "1px solid #e8e8e4",
+            background: "#f5f0e8", border: "1px solid #d4c9b5",
           }}>
             <div style={{ fontSize: 24, fontWeight: 800, color: wpmColor(metrics.wpm), fontFamily: "'JetBrains Mono', monospace" }}>
               {metrics.wpm}
@@ -163,7 +163,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
           {/* Fillers */}
           <div style={{
             textAlign: "center", padding: "12px 8px", borderRadius: 12,
-            background: "#fff", border: "1px solid #e8e8e4",
+            background: "#f5f0e8", border: "1px solid #d4c9b5",
           }}>
             <div style={{ fontSize: 24, fontWeight: 800, color: fillerColor(metrics.fillerCount), fontFamily: "'JetBrains Mono', monospace" }}>
               {metrics.fillerCount}
@@ -179,7 +179,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
           {/* Confidence */}
           <div style={{
             textAlign: "center", padding: "12px 8px", borderRadius: 12,
-            background: "#fff", border: "1px solid #e8e8e4",
+            background: "#f5f0e8", border: "1px solid #d4c9b5",
           }}>
             <div style={{ fontSize: 24, fontWeight: 800, color: confColor(metrics.confidenceScore), fontFamily: "'JetBrains Mono', monospace" }}>
               {metrics.confidenceScore}%
@@ -202,13 +202,13 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
             <div style={{ fontSize: 10, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>
               Speaking Pace (WPM)
             </div>
-            <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #e8e8e4", padding: "8px 4px 4px" }}>
+            <div style={{ background: "#f5f0e8", borderRadius: 10, border: "1px solid #d4c9b5", padding: "8px 4px 4px" }}>
               <ResponsiveContainer width="100%" height={120}>
                 <AreaChart data={metrics.wpmHistory} margin={{ top: 4, right: 8, bottom: 0, left: -10 }}>
                   <defs>
                     <linearGradient id="wpmGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#EF6C00" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#EF6C00" stopOpacity={0.02} />
+                      <stop offset="5%" stopColor="#c9a84c" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#c9a84c" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <ReferenceArea y1={120} y2={160} fill="#E8F5E9" fillOpacity={0.5} />
@@ -222,17 +222,17 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
                   <Area
                     type="monotone"
                     dataKey="wpm"
-                    stroke="#EF6C00"
+                    stroke="#c9a84c"
                     strokeWidth={2}
                     fill="url(#wpmGrad)"
                     isAnimationActive={true}
                     animationDuration={300}
-                    dot={{ r: 3, fill: "#EF6C00" }}
+                    dot={{ r: 3, fill: "#c9a84c" }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, paddingBottom: 4 }}>
-                <span style={{ fontSize: 9, color: "#2E7D32", display: "flex", alignItems: "center", gap: 3 }}>
+                <span style={{ fontSize: 9, color: "#2d6a4f", display: "flex", alignItems: "center", gap: 3 }}>
                   <span style={{ width: 8, height: 8, borderRadius: 2, background: "#E8F5E9", border: "1px solid #A5D6A7", display: "inline-block" }} />
                   Ideal zone (120-160)
                 </span>
@@ -245,7 +245,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
             <div style={{ fontSize: 10, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>
               Confidence Score
             </div>
-            <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #e8e8e4", padding: "8px 4px 4px" }}>
+            <div style={{ background: "#f5f0e8", borderRadius: 10, border: "1px solid #d4c9b5", padding: "8px 4px 4px" }}>
               <ResponsiveContainer width="100%" height={120}>
                 <LineChart data={metrics.confidenceHistory} margin={{ top: 4, right: 8, bottom: 0, left: -10 }}>
                   <XAxis dataKey="time" tick={{ fontSize: 9, fill: "#bbb" }} tickLine={false} axisLine={false} />
@@ -258,9 +258,9 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
                   <Line
                     type="monotone"
                     dataKey="score"
-                    stroke="#6A1B9A"
+                    stroke="#1a1a1a"
                     strokeWidth={2}
-                    dot={{ r: 3, fill: "#6A1B9A" }}
+                    dot={{ r: 3, fill: "#1a1a1a" }}
                     isAnimationActive={true}
                     animationDuration={300}
                   />
@@ -278,7 +278,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
             Live Transcript
           </div>
           <div style={{
-            background: "#FAFAF8", borderRadius: 10, border: "1px solid #e8e8e4",
+            background: "#faf7f0", borderRadius: 10, border: "1px solid #d4c9b5",
             padding: "12px 14px", maxHeight: 120, overflowY: "auto",
             fontSize: 13, lineHeight: 1.6, color: "#333",
           }}>
@@ -296,7 +296,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
                   key={word}
                   style={{
                     fontSize: 10, padding: "2px 8px", borderRadius: 10,
-                    background: "#FFF3E0", color: "#E65100", fontWeight: 500,
+                    background: "#f8f3e6", color: "#c23616", fontWeight: 500,
                   }}
                 >
                   &ldquo;{word}&rdquo; x{count}
@@ -313,7 +313,7 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
           onClick={onBack}
           style={{
             padding: "8px 16px", borderRadius: 8, border: "1px solid #ddd",
-            background: "#fff", color: "#666", fontSize: 12, fontWeight: 600, cursor: "pointer",
+            background: "#f5f0e8", color: "#666", fontSize: 12, fontWeight: 600, cursor: "pointer",
           }}
         >
           ← Back to Answer
@@ -326,9 +326,9 @@ export default function SpeechPracticePanel({ question, onBack }: SpeechPractice
       {/* Pulse animation */}
       <style>{`
         @keyframes pulse {
-          0% { box-shadow: 0 0 0 6px rgba(198,40,40,0.2), 0 0 0 12px rgba(198,40,40,0.1); }
-          50% { box-shadow: 0 0 0 10px rgba(198,40,40,0.15), 0 0 0 20px rgba(198,40,40,0.05); }
-          100% { box-shadow: 0 0 0 6px rgba(198,40,40,0.2), 0 0 0 12px rgba(198,40,40,0.1); }
+          0% { box-shadow: 0 0 0 6px rgba(194,54,22,0.2), 0 0 0 12px rgba(194,54,22,0.1); }
+          50% { box-shadow: 0 0 0 10px rgba(194,54,22,0.15), 0 0 0 20px rgba(194,54,22,0.05); }
+          100% { box-shadow: 0 0 0 6px rgba(194,54,22,0.2), 0 0 0 12px rgba(194,54,22,0.1); }
         }
       `}</style>
     </div>

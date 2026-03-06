@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 15">
+  <path d="M0 12 Q150 2, 300 8 Q450 2, 600 12" fill="none" stroke="#1a1a1a" stroke-width="0.5" opacity="0.1"/>
+  <path d="M0 14 Q150 6, 300 10 Q450 6, 600 14" fill="none" stroke="#1a1a1a" stroke-width="0.3" opacity="0.06"/>
+  <linearGradient id="scrollShadowTop" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#1a1a1a" stop-opacity="0.04"/>
+    <stop offset="100%" stop-color="#1a1a1a" stop-opacity="0"/>
+  </linearGradient>
+  <rect x="0" y="8" width="600" height="7" fill="url(#scrollShadowTop)"/>
+</svg>

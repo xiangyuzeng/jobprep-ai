@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 20" fill="none">
+  <path d="M0 10 Q20 3, 60 8 T120 11 T200 7 T280 12 T360 9 T440 6 T520 11 T600 8 T680 13 T760 7 L800 10"
+    stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" opacity="0.25" fill="none"/>
+  <path d="M10 10 Q40 5, 80 9 T160 7 T240 12 T320 8 T400 10 T480 7 T560 12 T640 9 T720 11 T790 8"
+    stroke="#1a1a1a" stroke-width="0.8" stroke-linecap="round" opacity="0.12" fill="none"/>
+  <circle cx="100" cy="10" r="1.5" fill="#1a1a1a" opacity="0.15"/>
+  <circle cx="400" cy="9" r="1" fill="#1a1a1a" opacity="0.1"/>
+  <circle cx="700" cy="11" r="1.2" fill="#1a1a1a" opacity="0.12"/>
+</svg>

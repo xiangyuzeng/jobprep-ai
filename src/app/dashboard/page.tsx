@@ -24,23 +24,23 @@ export default async function DashboardPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="font-cinzel text-2xl font-bold text-gray-900">Dashboard</h1>
         <div className="flex gap-3">
           <Link
             href="/dashboard/resume"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="bg-[var(--vermillion)] text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-[var(--vermillion-dark)] transition-colors"
           >
             New Resume
           </Link>
           <Link
             href="/dashboard/prepare"
-            className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+            className="bg-[var(--gold-accent)] text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-[#b89840] transition-colors"
           >
             Quick Prepare
           </Link>
           <Link
             href="/dashboard/interview"
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+            className="bg-[var(--ink-dark)] text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-[var(--ink-black)] transition-colors"
           >
             New Interview Board
           </Link>
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Resumes Section */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="font-cinzel text-lg font-semibold text-gray-900 mb-4">
             Your Resumes
           </h2>
           {resumes && resumes.length > 0 ? (
@@ -59,12 +59,12 @@ export default async function DashboardPage() {
                 <Link
                   key={resume.id}
                   href={`/dashboard/resume/${resume.id}`}
-                  className="block bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all"
+                  className="block bg-white rounded-sm p-4 border border-gray-200 border-l-2 border-l-[var(--vermillion)] hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-8 h-8 bg-[#fbe4df] rounded flex items-center justify-center">
+                        <svg className="w-4 h-4 text-[var(--vermillion)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-lg p-8 border border-dashed border-gray-300 text-center">
+            <div className="bg-white rounded-sm p-8 border border-dashed border-gray-300 text-center">
               <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
               </p>
               <Link
                 href="/dashboard/resume"
-                className="text-blue-600 text-sm font-medium hover:underline"
+                className="text-[var(--vermillion)] text-sm font-medium hover:underline"
               >
                 Upload Resume
               </Link>
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
 
         {/* Interview Boards Section */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="font-cinzel text-lg font-semibold text-gray-900 mb-4">
             Interview Boards
           </h2>
           {boards && boards.length > 0 ? (
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
                 <Link
                   key={board.id}
                   href={`/dashboard/interview/${board.id}`}
-                  className="block bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-300 hover:shadow-sm transition-all"
+                  className="block bg-white rounded-sm p-4 border border-gray-200 border-l-2 border-l-[var(--ink-dark)] hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -116,7 +116,7 @@ export default async function DashboardPage() {
                         {board.company_name} — {board.role}
                       </span>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full capitalize">
+                        <span className="text-xs bg-[#e8e4df] text-[var(--ink-black)] px-2 py-0.5 rounded-full capitalize">
                           {board.round_type}
                         </span>
                         <span className="text-xs text-gray-400">
@@ -141,7 +141,7 @@ export default async function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-lg p-8 border border-dashed border-gray-300 text-center">
+            <div className="bg-white rounded-sm p-8 border border-dashed border-gray-300 text-center">
               <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
               </p>
               <Link
                 href="/dashboard/interview"
-                className="text-purple-600 text-sm font-medium hover:underline"
+                className="text-[var(--ink-dark)] text-sm font-medium hover:underline"
               >
                 Create Interview Board
               </Link>

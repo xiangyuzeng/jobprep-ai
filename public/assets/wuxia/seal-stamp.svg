@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" transform="rotate(-5)">
+  <!-- Outer border (slightly rough edges) -->
+  <path d="M6 4 L74 5 L76 74 L5 76 Z" fill="none" stroke="#c23616" stroke-width="3" opacity="0.85"/>
+  <path d="M10 8 L70 9 L72 70 L9 72 Z" fill="none" stroke="#c23616" stroke-width="1.5" opacity="0.6"/>
+  <!-- AI text -->
+  <text x="40" y="48" font-family="serif" font-size="28" font-weight="bold" fill="#c23616" text-anchor="middle" dominant-baseline="middle" opacity="0.9">AI</text>
+  <!-- Decorative marks -->
+  <line x1="20" y1="58" x2="60" y2="58" stroke="#c23616" stroke-width="1" opacity="0.4"/>
+  <line x1="20" y1="24" x2="60" y2="24" stroke="#c23616" stroke-width="1" opacity="0.4"/>
+  <!-- Ink wear spots -->
+  <circle cx="15" cy="15" r="2" fill="#c23616" opacity="0.15"/>
+  <circle cx="65" cy="65" r="1.5" fill="#c23616" opacity="0.12"/>
+</svg>

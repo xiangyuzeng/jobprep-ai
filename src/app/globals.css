@@ -1,26 +1,241 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================
+   WUXIA INK WASH PAINTING THEME
+   ============================================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #faf7f0;
+  --color-foreground: #1a1a1a;
+  --font-sans: var(--font-crimson-pro);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* Map gray scale to ink/paper tones */
+  --color-gray-50: #faf7f0;
+  --color-gray-100: #ede6d6;
+  --color-gray-200: #d4c9b5;
+  --color-gray-300: #c4c4c4;
+  --color-gray-400: #888888;
+  --color-gray-500: #555555;
+  --color-gray-600: #2d2d2d;
+  --color-gray-700: #2d2d2d;
+  --color-gray-800: #1a1a1a;
+  --color-gray-900: #1a1a1a;
+
+  /* Map blue -> vermillion (primary actions) */
+  --color-blue-50: #fdf2f0;
+  --color-blue-100: #fbe4df;
+  --color-blue-300: #e8a090;
+  --color-blue-400: #d4695a;
+  --color-blue-500: #c23616;
+  --color-blue-600: #c23616;
+  --color-blue-700: #a02010;
+
+  /* Map purple -> ink-dark (interview/secondary) */
+  --color-purple-100: #e8e4df;
+  --color-purple-600: #2d2d2d;
+  --color-purple-700: #1a1a1a;
+
+  /* Map orange -> gold-accent (prepare/tertiary) */
+  --color-orange-500: #c9a84c;
+  --color-orange-600: #c9a84c;
+  --color-orange-700: #b89840;
+
+  /* Map green -> jade-green (success) */
+  --color-green-50: #edf5f0;
+  --color-green-100: #d4e8dc;
+  --color-green-500: #2d6a4f;
+  --color-green-700: #2d6a4f;
+
+  /* Map red -> vermillion (errors) */
+  --color-red-50: #fdf2f0;
+  --color-red-200: #f5c6bc;
+  --color-red-600: #c23616;
+  --color-red-700: #a02010;
+
+  /* Map yellow -> warm paper tones */
+  --color-yellow-100: #f8f3e6;
+  --color-yellow-700: #c9a84c;
+
+  /* Override white to paper-white */
+  --color-white: #f5f0e8;
 }
 
-@media (prefers-color-scheme: dark) {
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --ink-black: #1a1a1a;
+    --ink-dark: #2d2d2d;
+    --ink-mid: #555555;
+    --ink-light: #888888;
+    --ink-faint: #c4c4c4;
+    --paper-white: #f5f0e8;
+    --paper-cream: #ede6d6;
+    --paper-light: #faf7f0;
+    --paper-dark: #d4c9b5;
+    --vermillion: #c23616;
+    --vermillion-dark: #a02010;
+    --gold-accent: #c9a84c;
+    --jade-green: #2d6a4f;
+    --background: #faf7f0;
+    --foreground: #1a1a1a;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--paper-cream); }
+  ::-webkit-scrollbar-thumb { background: var(--ink-faint); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-light); }
+
+  /* Selection color */
+  ::selection {
+    background: rgba(194, 54, 22, 0.2);
+    color: var(--ink-black);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================
+   ANIMATION KEYFRAMES
+   ============================================================ */
+
+@keyframes inkReveal {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(20px);
+  }
+  60% { filter: blur(2px); }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes inkBleed {
+  0% {
+    filter: blur(8px);
+    opacity: 0;
+    letter-spacing: 0.3em;
+  }
+  60% {
+    filter: blur(2px);
+    opacity: 0.7;
+    letter-spacing: 0.05em;
+  }
+  100% {
+    filter: blur(0);
+    opacity: 1;
+    letter-spacing: normal;
+  }
+}
+
+@keyframes fogDrift {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateX(30px) translateY(-10px);
+    opacity: 0.25;
+  }
+}
+
+@keyframes floatWarrior {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes modalIn {
+  from {
+    transform: translateY(16px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 6px rgba(194, 54, 22, 0.2), 0 0 0 12px rgba(194, 54, 22, 0.1); }
+  50% { box-shadow: 0 0 0 10px rgba(194, 54, 22, 0.15), 0 0 0 20px rgba(194, 54, 22, 0.05); }
+  100% { box-shadow: 0 0 0 6px rgba(194, 54, 22, 0.2), 0 0 0 12px rgba(194, 54, 22, 0.1); }
+}
+
+@keyframes scrollDown {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+@keyframes brushStroke {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+@layer utilities {
+  .font-cinzel {
+    font-family: var(--font-cinzel-decorative);
+  }
+  .font-crimson {
+    font-family: var(--font-crimson-pro);
+  }
+  .ink-reveal {
+    animation: inkReveal 1s ease-out forwards;
+  }
+  .ink-bleed {
+    animation: inkBleed 2s ease-out forwards;
+  }
+  .fog-drift {
+    animation: fogDrift 8s ease-in-out infinite;
+  }
+  .float-warrior {
+    animation: floatWarrior 4s ease-in-out infinite;
+  }
+  .paper-texture {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(139, 119, 91, 0.015) 2px,
+        rgba(139, 119, 91, 0.015) 4px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 3px,
+        rgba(139, 119, 91, 0.01) 3px,
+        rgba(139, 119, 91, 0.01) 6px
+      );
+  }
+  .scroll-indicator {
+    animation: scrollDown 2s ease-in-out infinite;
+  }
 }

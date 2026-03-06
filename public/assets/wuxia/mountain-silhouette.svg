@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 300" preserveAspectRatio="none">
+  <!-- Back mountain range (lightest) -->
+  <path d="M0 300 L0 220 Q120 140, 240 180 Q360 120, 480 160 Q600 90, 720 150 Q840 100, 960 140 Q1080 80, 1200 130 Q1320 110, 1440 160 L1440 300 Z"
+    fill="#1a1a1a" opacity="0.04"/>
+  <!-- Middle mountain range -->
+  <path d="M0 300 L0 240 Q160 170, 320 210 Q480 150, 640 200 Q800 140, 960 190 Q1120 130, 1280 180 Q1360 160, 1440 200 L1440 300 Z"
+    fill="#1a1a1a" opacity="0.07"/>
+  <!-- Front mountain range (darkest) -->
+  <path d="M0 300 L0 260 Q200 210, 400 240 Q600 200, 800 250 Q1000 210, 1200 245 Q1320 220, 1440 255 L1440 300 Z"
+    fill="#1a1a1a" opacity="0.12"/>
+  <!-- Mist layer -->
+  <ellipse cx="400" cy="220" rx="300" ry="30" fill="#faf7f0" opacity="0.4"/>
+  <ellipse cx="1000" cy="200" rx="250" ry="25" fill="#faf7f0" opacity="0.3"/>
+</svg>

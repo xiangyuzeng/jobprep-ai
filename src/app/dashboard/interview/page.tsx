@@ -48,7 +48,7 @@ export default function InterviewBoardCreatePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2 font-cinzel">
         Create Interview Board
       </h1>
       <p className="text-gray-500 mb-8">
@@ -66,7 +66,7 @@ export default function InterviewBoardCreatePage() {
               type="text"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none"
               placeholder="e.g., Google"
               required
             />
@@ -79,7 +79,7 @@ export default function InterviewBoardCreatePage() {
               type="text"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none"
               placeholder="e.g., Senior Software Engineer"
               required
             />
@@ -94,7 +94,7 @@ export default function InterviewBoardCreatePage() {
             <select
               value={roundType}
               onChange={(e) => setRoundType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none bg-white"
             >
               <option value="technical">Technical (CTO / Engineering Manager)</option>
               <option value="hr">HR / Recruiter</option>
@@ -109,7 +109,7 @@ export default function InterviewBoardCreatePage() {
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none bg-white"
             >
               <option value="en">English</option>
               <option value="zh">Chinese</option>
@@ -125,7 +125,7 @@ export default function InterviewBoardCreatePage() {
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-y"
+            className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none resize-y"
             placeholder="Paste the job description here for more targeted questions..."
           />
         </div>
@@ -138,7 +138,7 @@ export default function InterviewBoardCreatePage() {
             value={interviewerInfo}
             onChange={(e) => setInterviewerInfo(e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-y"
+            className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent outline-none resize-y"
             placeholder="Name, title, LinkedIn, or any info about the interviewer..."
           />
         </div>
@@ -148,7 +148,7 @@ export default function InterviewBoardCreatePage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+          className="w-full py-3 bg-[var(--ink-dark)] text-white rounded-sm font-medium hover:bg-[var(--ink-black)] disabled:opacity-50 transition-colors"
         >
           {loading ? "Generating questions..." : "Generate Interview Board"}
         </button>

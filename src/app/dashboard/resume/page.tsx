@@ -71,7 +71,7 @@ export default function ResumeUploadPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2 font-cinzel">
         Upload Your Resume
       </h1>
       <p className="text-gray-500 mb-8">
@@ -84,9 +84,9 @@ export default function ResumeUploadPage() {
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-sm p-12 text-center transition-colors ${
           dragActive
-            ? "border-blue-400 bg-blue-50"
+            ? "border-[var(--vermillion)] bg-[var(--paper-cream)]"
             : file
             ? "border-green-400 bg-green-50"
             : "border-gray-300 hover:border-gray-400"
@@ -136,7 +136,7 @@ export default function ResumeUploadPage() {
             <p className="text-gray-600 mb-1">
               Drag and drop your resume here, or
             </p>
-            <label className="text-blue-600 hover:underline cursor-pointer font-medium">
+            <label className="text-[var(--vermillion)] hover:underline cursor-pointer font-medium">
               browse files
               <input
                 type="file"
@@ -159,7 +159,7 @@ export default function ResumeUploadPage() {
         <button
           onClick={handleUpload}
           disabled={uploading}
-          className="w-full mt-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="w-full mt-6 py-3 bg-[var(--vermillion)] text-white rounded-sm font-medium hover:bg-[var(--vermillion-dark)] disabled:opacity-50 transition-colors"
         >
           {uploading ? "Parsing resume..." : "Upload & Parse Resume"}
         </button>

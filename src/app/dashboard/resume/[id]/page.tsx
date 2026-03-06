@@ -185,7 +185,7 @@ function TypeLabel({ type }: { type: string }) {
   };
 
   return (
-    <span className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+    <span className="text-xs font-mono bg-[#fdf2f0] text-blue-700 px-2 py-0.5 rounded">
       {labels[type] || type}
     </span>
   );
@@ -378,7 +378,7 @@ function SuggestionCard({
 
   return (
     <div
-      className={`bg-white rounded-lg border p-4 transition-all ${
+      className={`bg-white rounded-sm border p-4 transition-all ${
         status === "accepted"
           ? "border-green-300 bg-green-50/30"
           : status === "rejected"
@@ -419,7 +419,7 @@ function SuggestionCard({
       <div className="mb-3">
         <button
           onClick={() => setShowReason(!showReason)}
-          className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          className="text-xs text-[var(--vermillion)] hover:text-blue-700 flex items-center gap-1"
         >
           <svg
             className="w-3.5 h-3.5"
@@ -437,7 +437,7 @@ function SuggestionCard({
           {showReason ? "Hide reason" : "Why this change?"}
         </button>
         {showReason && (
-          <p className="text-xs text-gray-600 mt-1.5 bg-blue-50 rounded px-2 py-1.5 border border-blue-100">
+          <p className="text-xs text-gray-600 mt-1.5 bg-[#fdf2f0] rounded px-2 py-1.5 border border-blue-100">
             {suggestion.reason}
           </p>
         )}
@@ -454,7 +454,7 @@ function SuggestionCard({
           </button>
           <button
             onClick={onReject}
-            className="flex-1 text-xs font-medium py-1.5 rounded-md bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="flex-1 text-xs font-medium py-1.5 rounded-md bg-white text-gray-600 border border-gray-300 hover:bg-[var(--paper-cream)] transition-colors"
           >
             Reject
           </button>
@@ -482,9 +482,9 @@ function StreamingLoader({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-3 py-8">
       <div className="flex gap-1">
-        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0ms]" />
-        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:150ms]" />
-        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:300ms]" />
+        <span className="w-2 h-2 bg-[#fdf2f0]0 rounded-full animate-bounce [animation-delay:0ms]" />
+        <span className="w-2 h-2 bg-[#fdf2f0]0 rounded-full animate-bounce [animation-delay:150ms]" />
+        <span className="w-2 h-2 bg-[#fdf2f0]0 rounded-full animate-bounce [animation-delay:300ms]" />
       </div>
       <span className="text-sm text-gray-500">{text}</span>
     </div>
@@ -888,7 +888,7 @@ export default function ResumeTailorPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-8 h-8 border-2 border-[var(--vermillion)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-sm text-gray-500">Loading resume...</p>
         </div>
       </div>
@@ -916,13 +916,13 @@ export default function ResumeTailorPage() {
               d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2 font-cinzel">
             Error Loading Resume
           </h2>
           <p className="text-sm text-gray-500 mb-4">{error}</p>
           <button
             onClick={() => router.push("/dashboard")}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-[var(--vermillion)] hover:underline"
           >
             Back to Dashboard
           </button>
@@ -962,7 +962,7 @@ export default function ResumeTailorPage() {
             </svg>
           </button>
           <div>
-            <h1 className="text-sm font-semibold text-gray-900">
+            <h1 className="text-sm font-semibold text-gray-900 font-cinzel">
               {resume?.original_filename || "Resume"}
             </h1>
             {result?.jd_analysis && (
@@ -997,7 +997,7 @@ export default function ResumeTailorPage() {
             <button
               onClick={handleDownloadPdf}
               disabled={pdfDownloading}
-              className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-sm bg-[var(--vermillion)] text-white hover:bg-[var(--vermillion-dark)] disabled:opacity-50 transition-colors"
             >
               {pdfDownloading ? (
                 <>
@@ -1050,7 +1050,7 @@ export default function ResumeTailorPage() {
                 onChange={(e) => setJobDescription(e.target.value)}
                 placeholder="Paste the full job description here..."
                 rows={8}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-y bg-white"
+                className="w-full rounded-sm border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-[var(--vermillion)] resize-y bg-white"
                 disabled={pageState === "generating"}
               />
               <div className="flex items-center justify-between mt-3">
@@ -1064,7 +1064,7 @@ export default function ResumeTailorPage() {
                   disabled={
                     !jobDescription.trim() || pageState === "generating"
                   }
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--vermillion)] text-white text-sm font-medium rounded-sm hover:bg-[var(--vermillion-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {pageState === "generating" ? (
                     <>
@@ -1095,7 +1095,7 @@ export default function ResumeTailorPage() {
 
             {/* Inline error (non-fatal) */}
             {error && resume && (
-              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+              <div className="bg-red-50 border border-red-200 rounded-sm px-4 py-3 text-sm text-red-700 flex items-start gap-2">
                 <svg
                   className="w-4 h-4 mt-0.5 shrink-0"
                   fill="none"
@@ -1152,7 +1152,7 @@ export default function ResumeTailorPage() {
               <div>
                 <StreamingLoader text="Analyzing job description and generating tailored suggestions..." />
                 {streamText && (
-                  <div className="mt-4 bg-white rounded-lg border border-gray-200 p-4 max-h-48 overflow-y-auto">
+                  <div className="mt-4 bg-white rounded-sm border border-gray-200 p-4 max-h-48 overflow-y-auto">
                     <p className="text-xs text-gray-400 mb-1">
                       Raw stream output:
                     </p>
@@ -1180,7 +1180,7 @@ export default function ResumeTailorPage() {
                 <h3 className="text-sm font-semibold text-gray-900">
                   JD Summary
                 </h3>
-                <div className="bg-white rounded-lg border border-gray-200 p-4 text-sm space-y-2">
+                <div className="bg-white rounded-sm border border-gray-200 p-4 text-sm space-y-2">
                   <div className="flex gap-2">
                     <span className="text-gray-400 w-24 shrink-0">Role:</span>
                     <span className="text-gray-900">
@@ -1254,7 +1254,7 @@ export default function ResumeTailorPage() {
                 onClick={() => setRightTab("resume")}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   rightTab === "resume"
-                    ? "border-blue-600 text-blue-600"
+                    ? "border-[var(--vermillion)] text-[var(--vermillion)]"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -1269,7 +1269,7 @@ export default function ResumeTailorPage() {
                 onClick={() => setRightTab("cover-letter")}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   rightTab === "cover-letter"
-                    ? "border-blue-600 text-blue-600"
+                    ? "border-[var(--vermillion)] text-[var(--vermillion)]"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -1282,7 +1282,7 @@ export default function ResumeTailorPage() {
                 onClick={() => setRightTab("vulnerability")}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   rightTab === "vulnerability"
-                    ? "border-orange-600 text-orange-600"
+                    ? "border-[var(--gold-accent)] text-orange-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -1444,7 +1444,7 @@ export default function ResumeTailorPage() {
                     </p>
                     <button
                       onClick={handleGenerateCoverLetter}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--vermillion)] text-white text-sm font-medium rounded-sm hover:bg-[var(--vermillion-dark)] transition-colors"
                     >
                       <svg
                         className="w-4 h-4"
@@ -1468,10 +1468,10 @@ export default function ResumeTailorPage() {
                   <div>
                     <StreamingLoader text="Writing your cover letter..." />
                     {coverLetter && (
-                      <div className="mt-4 bg-gray-50 rounded-lg border border-gray-200 p-6">
+                      <div className="mt-4 bg-gray-50 rounded-sm border border-gray-200 p-6">
                         <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                           {coverLetter}
-                          <span className="inline-block w-0.5 h-4 bg-blue-500 animate-pulse ml-0.5 align-text-bottom" />
+                          <span className="inline-block w-0.5 h-4 bg-[#fdf2f0]0 animate-pulse ml-0.5 align-text-bottom" />
                         </p>
                       </div>
                     )}
@@ -1525,14 +1525,14 @@ export default function ResumeTailorPage() {
                         )}
                       </button>
                     </div>
-                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
+                    <div className="bg-gray-50 rounded-sm border border-gray-200 p-6">
                       <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
                         {coverLetter}
                       </p>
                     </div>
                     <button
                       onClick={handleGenerateCoverLetter}
-                      className="mt-4 text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      className="mt-4 text-xs text-[var(--vermillion)] hover:text-blue-700 font-medium"
                     >
                       Regenerate
                     </button>
@@ -1562,7 +1562,7 @@ export default function ResumeTailorPage() {
                     </p>
                     <button
                       onClick={handleVulnerabilityAnalysis}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--gold-accent)] text-white text-sm font-medium rounded-sm hover:bg-[#b89840] transition-colors"
                     >
                       Run Vulnerability Analysis
                     </button>
@@ -1602,7 +1602,7 @@ export default function ResumeTailorPage() {
                     </div>
 
                     {vulnerabilityReport.summary && (
-                      <p className="text-sm text-gray-600 bg-orange-50 border border-orange-100 rounded-lg p-3">
+                      <p className="text-sm text-gray-600 bg-orange-50 border border-orange-100 rounded-sm p-3">
                         {vulnerabilityReport.summary}
                       </p>
                     )}
@@ -1625,7 +1625,7 @@ export default function ResumeTailorPage() {
                         </div>
                         <div className="space-y-2">
                           {cat.items.map((item, ii) => (
-                            <div key={ii} className="bg-gray-50 rounded-lg border border-gray-200 p-3">
+                            <div key={ii} className="bg-gray-50 rounded-sm border border-gray-200 p-3">
                               <p className="text-xs text-red-600 font-medium mb-1">{item.issue}</p>
                               {item.original && (
                                 <p className="text-xs text-gray-500 line-through mb-1">{item.original}</p>
@@ -1647,7 +1647,7 @@ export default function ResumeTailorPage() {
                         </h4>
                         <div className="space-y-2">
                           {vulnerabilityReport.attack_points.map((ap, ai) => (
-                            <div key={ai} className="bg-red-50 rounded-lg border border-red-100 p-3">
+                            <div key={ai} className="bg-red-50 rounded-sm border border-red-100 p-3">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-xs font-semibold text-red-800">{ap.topic}</span>
                                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${
@@ -1674,7 +1674,7 @@ export default function ResumeTailorPage() {
                     <div className="border-t border-gray-200 pt-4">
                       <button
                         onClick={handleGenerateVulnerabilityBoard}
-                        className="w-full bg-orange-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-[var(--gold-accent)] text-white py-2.5 rounded-sm text-sm font-medium hover:bg-[#b89840] transition-colors flex items-center justify-center gap-2"
                       >
                         Generate Practice Board
                       </button>

@@ -136,21 +136,21 @@ export default function PreparePage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Quick Prepare</h1>
+        <h1 className="text-2xl font-bold text-gray-900 font-cinzel">Quick Prepare</h1>
         <p className="text-sm text-gray-500 mt-1">
           Paste a job description to instantly generate a tailored interview board.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-sm text-red-700">
           {error}
         </div>
       )}
 
       {/* Step 1: Paste JD */}
       {(pageState === "idle" || pageState === "analyzing") && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-sm border border-gray-200 p-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Job Description
           </label>
@@ -158,7 +158,7 @@ export default function PreparePage() {
             value={jdText}
             onChange={(e) => setJdText(e.target.value)}
             placeholder="Paste the full job description here..."
-            className="w-full h-64 border border-gray-300 rounded-lg p-3 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="w-full h-64 border border-gray-300 rounded-sm p-3 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[var(--vermillion)] focus:border-transparent"
             disabled={pageState === "analyzing"}
           />
           <div className="flex items-center justify-between mt-4">
@@ -168,7 +168,7 @@ export default function PreparePage() {
             <button
               onClick={handleAnalyze}
               disabled={pageState === "analyzing" || jdText.trim().length < 50}
-              className="bg-orange-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-[var(--gold-accent)] text-white px-6 py-2 rounded-sm text-sm font-medium hover:bg-[#b89840] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {pageState === "analyzing" ? (
                 <>
@@ -190,7 +190,7 @@ export default function PreparePage() {
       {(pageState === "analyzed" || pageState === "generating") && analysis && (
         <div className="space-y-4">
           {/* Analysis Results */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">JD Analysis</h2>
               <button
@@ -268,7 +268,7 @@ export default function PreparePage() {
                   {analysis.preferred_skills.map((skill, i) => (
                     <span
                       key={i}
-                      className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200"
+                      className="text-xs bg-[#fdf2f0] text-blue-700 px-2 py-0.5 rounded-full border border-blue-200"
                     >
                       {skill}
                     </span>
@@ -315,7 +315,7 @@ export default function PreparePage() {
           </div>
 
           {/* Board Configuration */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-sm border border-gray-200 p-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
               Interview Board Settings
             </h3>
@@ -327,7 +327,7 @@ export default function PreparePage() {
                 <select
                   value={roundType}
                   onChange={(e) => setRoundType(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--vermillion)]"
                   disabled={pageState === "generating"}
                 >
                   <option value="technical">Technical</option>
@@ -343,7 +343,7 @@ export default function PreparePage() {
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--vermillion)]"
                   disabled={pageState === "generating"}
                 >
                   <option value="en">English</option>
@@ -355,7 +355,7 @@ export default function PreparePage() {
             <button
               onClick={handleGenerate}
               disabled={pageState === "generating"}
-              className="mt-4 w-full bg-orange-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="mt-4 w-full bg-[var(--gold-accent)] text-white py-2.5 rounded-sm text-sm font-medium hover:bg-[#b89840] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {pageState === "generating" ? (
                 <>
