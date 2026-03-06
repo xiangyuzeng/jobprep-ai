@@ -84,6 +84,13 @@ export default async function DashboardLayout({
                 >
                   Interview Prep
                 </Link>
+                <Link
+                  href="/dashboard/simulator"
+                  className="px-3 py-1.5 text-sm rounded-sm transition-colors"
+                  style={{ color: "var(--ink-mid)", textDecoration: "none" }}
+                >
+                  Mock Interview
+                </Link>
               </div>
             </div>
             <div className="flex items-center gap-4">

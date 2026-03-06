@@ -643,6 +643,12 @@ export default function InterviewBoardPage() {
               >
                 🤖 AI Coach
               </Link>
+              <Link
+                href={`/dashboard/simulator?boardId=${boardId}`}
+                style={{ padding: "3px 10px", borderRadius: 6, border: "none", background: "var(--vermillion)", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
+              >
+                🎤 Mock Interview
+              </Link>
             </div>
           </div>
 
