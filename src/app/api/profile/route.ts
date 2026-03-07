@@ -19,6 +19,13 @@ export async function PATCH(request: Request) {
       updates.onboarding_completed = body.onboarding_completed;
     }
 
+    if (
+      typeof body.preferred_model === "string" &&
+      (body.preferred_model === "claude" || body.preferred_model === "openai")
+    ) {
+      updates.preferred_model = body.preferred_model;
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }

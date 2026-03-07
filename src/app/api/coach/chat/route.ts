@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { anthropic } from "@/lib/claude";
+import { streamLLMMultiTurn, iterateStream, getProvider } from "@/lib/llm";
 import { NextResponse } from "next/server";
 import { getCoachSystemPrompt } from "@/lib/coaching-contexts";
 import type { CoachContextData } from "@/lib/coaching-contexts";
@@ -177,13 +177,14 @@ export async function POST(request: Request) {
     content: message.trim(),
   });
 
-  // ── 7. Build messages array for Anthropic ──
+  // ── 7. Build messages array ──
   const messagesArray: Array<{ role: 'user' | 'assistant'; content: string }> = [
     ...history,
     { role: 'user', content: message.trim() },
   ];
 
   // ── 8. Stream response as NDJSON ──
+  const provider = await getProvider(supabase, user.id);
   const encoder = new TextEncoder();
 
   const readable = new ReadableStream({
@@ -201,38 +202,27 @@ export async function POST(request: Request) {
           )
         );
 
-        // Call Anthropic streaming API
-        const stream = anthropic.messages.stream(
-          {
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 4096,
-            system: systemPrompt,
-            messages: messagesArray,
-          },
-          {
-            signal: abortController.signal,
-          }
-        );
+        // Call streaming API
+        const { stream, getUsage } = streamLLMMultiTurn(provider, {
+          system: systemPrompt,
+          messages: messagesArray,
+          maxTokens: 4096,
+          signal: abortController.signal,
+        });
 
         let fullAssistantResponse = '';
 
-        for await (const event of stream) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta.type === 'text_delta'
-          ) {
-            fullAssistantResponse += event.delta.text;
-            controller.enqueue(
-              encoder.encode(
-                JSON.stringify({ type: 'assistant', text: event.delta.text }) +
-                  '\n'
-              )
-            );
-          }
+        for await (const text of iterateStream(stream)) {
+          fullAssistantResponse += text;
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({ type: 'assistant', text }) + '\n'
+            )
+          );
         }
 
-        // Get final message for token usage
-        const finalMessage = await stream.finalMessage();
+        // Get token usage
+        const usage = await getUsage();
 
         // Save assistant message to DB
         await supabase.from('coach_messages').insert({
@@ -263,8 +253,8 @@ export async function POST(request: Request) {
           encoder.encode(
             JSON.stringify({
               type: 'done',
-              inputTokens: finalMessage.usage.input_tokens,
-              outputTokens: finalMessage.usage.output_tokens,
+              inputTokens: usage.inputTokens,
+              outputTokens: usage.outputTokens,
             }) + '\n'
           )
         );

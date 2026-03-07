@@ -1,4 +1,4 @@
-import { anthropic } from "@/lib/claude";
+import { callLLM } from "@/lib/llm";
 import { NextResponse } from "next/server";
 import {
   SIMULATOR_SCORING_SYSTEM_PROMPT,
@@ -80,20 +80,14 @@ export async function POST(request: Request) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const response = await anthropic.messages.create(
-      {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userMessage }],
-      },
-      { signal: controller.signal }
-    );
+    const responseText = await callLLM("claude", {
+      systemPrompt,
+      userMessage,
+      maxTokens: 1024,
+      signal: controller.signal,
+    });
 
     clearTimeout(timeout);
-
-    const responseText =
-      response.content[0].type === "text" ? response.content[0].text : "";
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {

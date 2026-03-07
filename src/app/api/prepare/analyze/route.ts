@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { streamClaude, createStreamResponse } from "@/lib/claude";
+import { streamLLM, createStreamResponse, getProvider } from "@/lib/llm";
 import { JD_ANALYZER_PROMPT } from "@/lib/prompts/jd-analyzer";
 import { NextResponse } from "next/server";
 
@@ -25,7 +25,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const stream = await streamClaude({
+    const provider = await getProvider(supabase, user.id);
+    const stream = await streamLLM(provider, {
       systemPrompt: JD_ANALYZER_PROMPT,
       userMessage: jobDescription,
       maxTokens: 4096,

@@ -52,8 +52,35 @@ function TierBadge({ tier }: { tier: string }) {
   return null;
 }
 
-export default function DashboardNav({ userEmail, tier = "free" }: { userEmail: string; tier?: string }) {
+export default function DashboardNav({
+  userEmail,
+  tier = "free",
+  preferredModel = "claude",
+}: {
+  userEmail: string;
+  tier?: string;
+  preferredModel?: string;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [model, setModel] = useState(preferredModel);
+  const [switching, setSwitching] = useState(false);
+
+  async function handleModelSwitch(newModel: string) {
+    if (newModel === model || switching) return;
+    setSwitching(true);
+    try {
+      await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferred_model: newModel }),
+      });
+      setModel(newModel);
+    } catch (err) {
+      console.error("Failed to switch model:", err);
+    } finally {
+      setSwitching(false);
+    }
+  }
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -126,6 +153,47 @@ export default function DashboardNav({ userEmail, tier = "free" }: { userEmail: 
 
           {/* Desktop user info */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Model toggle pills */}
+            <div
+              style={{
+                display: "flex",
+                borderRadius: 100,
+                border: "1px solid var(--paper-dark)",
+                overflow: "hidden",
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              <button
+                onClick={() => handleModelSwitch("claude")}
+                disabled={switching}
+                style={{
+                  padding: "3px 10px",
+                  border: "none",
+                  cursor: switching ? "wait" : "pointer",
+                  background: model === "claude" ? "var(--ink-dark)" : "transparent",
+                  color: model === "claude" ? "var(--paper-cream)" : "var(--ink-mid)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                Claude
+              </button>
+              <button
+                onClick={() => handleModelSwitch("openai")}
+                disabled={switching}
+                style={{
+                  padding: "3px 10px",
+                  border: "none",
+                  borderLeft: "1px solid var(--paper-dark)",
+                  cursor: switching ? "wait" : "pointer",
+                  background: model === "openai" ? "var(--ink-dark)" : "transparent",
+                  color: model === "openai" ? "var(--paper-cream)" : "var(--ink-mid)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                GPT-4o
+              </button>
+            </div>
             <TierBadge tier={tier} />
             {tier === "free" && (
               <Link
@@ -235,6 +303,53 @@ export default function DashboardNav({ userEmail, tier = "free" }: { userEmail: 
               ↑ Upgrade to Pro
             </Link>
           )}
+          {/* Mobile model toggle */}
+          <div
+            className="flex items-center gap-2 py-2.5"
+            style={{ borderBottom: "1px solid var(--paper-dark)" }}
+          >
+            <span style={{ fontSize: 12, color: "var(--ink-mid)" }}>Model:</span>
+            <div
+              style={{
+                display: "flex",
+                borderRadius: 100,
+                border: "1px solid var(--paper-dark)",
+                overflow: "hidden",
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              <button
+                onClick={() => handleModelSwitch("claude")}
+                disabled={switching}
+                style={{
+                  padding: "3px 10px",
+                  border: "none",
+                  cursor: switching ? "wait" : "pointer",
+                  background: model === "claude" ? "var(--ink-dark)" : "transparent",
+                  color: model === "claude" ? "var(--paper-cream)" : "var(--ink-mid)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                Claude
+              </button>
+              <button
+                onClick={() => handleModelSwitch("openai")}
+                disabled={switching}
+                style={{
+                  padding: "3px 10px",
+                  border: "none",
+                  borderLeft: "1px solid var(--paper-dark)",
+                  cursor: switching ? "wait" : "pointer",
+                  background: model === "openai" ? "var(--ink-dark)" : "transparent",
+                  color: model === "openai" ? "var(--paper-cream)" : "var(--ink-mid)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                GPT-4o
+              </button>
+            </div>
+          </div>
           <div
             className="flex items-center justify-between pt-3 mt-1"
             style={{ borderTop: "none" }}

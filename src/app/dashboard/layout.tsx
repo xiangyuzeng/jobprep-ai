@@ -20,10 +20,11 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("tier")
+    .select("tier, preferred_model")
     .eq("id", user.id)
     .single();
   const tier = (profile?.tier as string) || "free";
+  const preferredModel = (profile?.preferred_model as string) || "claude";
 
   return (
     <div className="min-h-screen" style={{ background: "var(--paper-light)" }}>
@@ -35,7 +36,7 @@ export default async function DashboardLayout({
           borderColor: "var(--paper-dark)",
         }}
       >
-        <DashboardNav userEmail={user.email || ""} tier={tier} />
+        <DashboardNav userEmail={user.email || ""} tier={tier} preferredModel={preferredModel} />
       </nav>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}

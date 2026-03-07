@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { extractTextFromFile } from "@/lib/resume-parser";
-import { streamClaude } from "@/lib/claude";
+import { streamLLM, iterateStream, getProvider } from "@/lib/llm";
 import { RESUME_PARSER_PROMPT } from "@/lib/prompts/resume-parser";
 import { NextResponse } from "next/server";
 
@@ -41,21 +41,17 @@ export async function POST(request: Request) {
       contentType: file.type,
     });
 
-    // Parse resume with Claude
-    const stream = await streamClaude({
+    // Parse resume with LLM
+    const provider = await getProvider(supabase, user.id);
+    const stream = await streamLLM(provider, {
       systemPrompt: RESUME_PARSER_PROMPT,
       userMessage: text,
       maxTokens: 4096,
     });
 
     let fullResponse = "";
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        fullResponse += event.delta.text;
-      }
+    for await (const text of iterateStream(stream)) {
+      fullResponse += text;
     }
 
     // Extract JSON from response

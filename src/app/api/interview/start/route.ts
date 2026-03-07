@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { streamClaude } from "@/lib/claude";
+import { streamLLM, iterateStream, getProvider } from "@/lib/llm";
 import { BOARD_QUESTIONS_PROMPT } from "@/lib/prompts/board-questions";
 import { VULNERABILITY_BOARD_QUESTIONS_PROMPT } from "@/lib/prompts/board-questions-vulnerability";
 import { checkLimit, incrementUsage } from "@/lib/usage";
@@ -127,20 +127,16 @@ Language: ${language || "en"}`;
       ? VULNERABILITY_BOARD_QUESTIONS_PROMPT
       : BOARD_QUESTIONS_PROMPT;
 
-    const stream = await streamClaude({
+    const provider = await getProvider(supabase, user.id);
+    const stream = await streamLLM(provider, {
       systemPrompt,
       userMessage,
       maxTokens: 8192,
     });
 
     let fullResponse = "";
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        fullResponse += event.delta.text;
-      }
+    for await (const chunk of iterateStream(stream)) {
+      fullResponse += chunk;
     }
 
     // Parse questions JSON

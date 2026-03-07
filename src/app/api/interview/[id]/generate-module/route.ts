@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { streamClaude } from "@/lib/claude";
+import { streamLLM, iterateStream, getProvider } from "@/lib/llm";
 import { BOARD_ANSWERS_TECHNICAL_PROMPT } from "@/lib/prompts/board-answers-technical";
 import { BOARD_ANSWERS_BEHAVIORAL_PROMPT } from "@/lib/prompts/board-answers-behavioral";
 import { NextResponse } from "next/server";
@@ -92,26 +92,22 @@ ${questionsText}`;
       userMessage += `\n\n${formatDossierContext(board.dossier)}`;
     }
 
-    // Stream from Claude and collect full response — with 50s timeout
+    // Stream and collect full response — with 50s timeout
+    const provider = await getProvider(supabase, user.id);
     const abortController = new AbortController();
     const streamTimeout = setTimeout(() => abortController.abort(), 50_000);
 
     let fullResponse = "";
     try {
-      const stream = await streamClaude({
+      const stream = await streamLLM(provider, {
         systemPrompt: answerPrompt,
         userMessage,
         maxTokens: 16384,
         signal: abortController.signal,
       });
 
-      for await (const event of stream) {
-        if (
-          event.type === "content_block_delta" &&
-          event.delta.type === "text_delta"
-        ) {
-          fullResponse += event.delta.text;
-        }
+      for await (const chunk of iterateStream(stream)) {
+        fullResponse += chunk;
       }
     } catch (streamErr) {
       clearTimeout(streamTimeout);

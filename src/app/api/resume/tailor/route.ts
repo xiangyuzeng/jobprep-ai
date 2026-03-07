@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { streamClaude, createStreamResponse } from "@/lib/claude";
+import { streamLLM, iterateStream, getProvider } from "@/lib/llm";
 import { RESUME_TAILOR_PROMPT } from "@/lib/prompts/resume-tailor";
 import { checkLimit, incrementUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
@@ -77,7 +77,8 @@ ${jobDescription}`;
       userMessage += `\n\n${formatDossierContext(dossier)}`;
     }
 
-    const stream = await streamClaude({
+    const provider = await getProvider(supabase, user.id);
+    const stream = await streamLLM(provider, {
       systemPrompt: RESUME_TAILOR_PROMPT,
       userMessage,
       maxTokens: 8192,
@@ -90,18 +91,13 @@ ${jobDescription}`;
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              fullResponse += event.delta.text;
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ text: event.delta.text })}\n\n`
-                )
-              );
-            }
+          for await (const chunk of iterateStream(stream)) {
+            fullResponse += chunk;
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ text: chunk })}\n\n`
+              )
+            );
           }
 
           // Parse and save the complete response

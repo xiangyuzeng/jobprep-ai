@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { anthropic } from "@/lib/claude";
+import { callLLM, getProvider } from "@/lib/llm";
 import { NextResponse } from "next/server";
 import {
   SIMULATOR_SCORING_SYSTEM_PROMPT,
@@ -87,25 +87,19 @@ export async function POST(request: Request) {
   });
 
   try {
-    // 5. NON-STREAMING call to Claude with 15-second timeout
+    // 5. NON-STREAMING call with 15-second timeout
+    const provider = await getProvider(supabase, user.id);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const response = await anthropic.messages.create(
-      {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userMessage }],
-      },
-      { signal: controller.signal }
-    );
+    const responseText = await callLLM(provider, {
+      systemPrompt,
+      userMessage,
+      maxTokens: 1024,
+      signal: controller.signal,
+    });
 
     clearTimeout(timeout);
-
-    // 6. Parse JSON from response
-    const responseText =
-      response.content[0].type === "text" ? response.content[0].text : "";
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {

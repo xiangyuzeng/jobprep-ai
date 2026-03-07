@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { streamClaude } from "@/lib/claude";
+import { streamLLM, iterateStream, getProvider } from "@/lib/llm";
 import { COVER_LETTER_PROMPT } from "@/lib/prompts/cover-letter";
 import { NextResponse } from "next/server";
 
@@ -54,7 +54,8 @@ ROLE: ${tailored.job_title || "Unknown"}`;
       userMessage += `\n\n${formatDossierContext(tailored.dossier)}`;
     }
 
-    const stream = await streamClaude({
+    const provider = await getProvider(supabase, user.id);
+    const stream = await streamLLM(provider, {
       systemPrompt: COVER_LETTER_PROMPT,
       userMessage,
       maxTokens: 2048,
@@ -66,18 +67,13 @@ ROLE: ${tailored.job_title || "Unknown"}`;
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              fullResponse += event.delta.text;
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ text: event.delta.text })}\n\n`
-                )
-              );
-            }
+          for await (const chunk of iterateStream(stream)) {
+            fullResponse += chunk;
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ text: chunk })}\n\n`
+              )
+            );
           }
 
           // Save cover letter to database
