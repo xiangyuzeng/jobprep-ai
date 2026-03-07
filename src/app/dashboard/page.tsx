@@ -2,7 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentPeriod, TIER_LIMITS, FEATURE_LABELS } from "@/lib/usage";
 import type { Tier, Feature } from "@/lib/usage";
 import Link from "next/link";
+import nextDynamic from "next/dynamic";
 import DashboardClient from "./DashboardClient";
+
+const OnboardingWizard = nextDynamic(() => import("@/components/onboarding/OnboardingWizard"), { ssr: false });
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +32,15 @@ export default async function DashboardPage() {
   // Fetch tier and usage
   const { data: profile } = await supabase
     .from("profiles")
-    .select("tier")
+    .select("tier, onboarding_completed")
     .eq("id", user!.id)
     .single();
   const tier = (profile?.tier as Tier) || "free";
+
+  const showOnboarding =
+    !profile?.onboarding_completed &&
+    (!resumes || resumes.length === 0) &&
+    (!boards || boards.length === 0);
 
   const period = getCurrentPeriod();
   const { data: usageRow } = await supabase
@@ -48,6 +56,14 @@ export default async function DashboardPage() {
     simulatorSessions: usageRow?.simulator_sessions ?? 0,
   };
   const limits = TIER_LIMITS[tier];
+
+  if (showOnboarding) {
+    return (
+      <div style={{ padding: "24px 0" }}>
+        <OnboardingWizard />
+      </div>
+    );
+  }
 
   return (
     <div>
