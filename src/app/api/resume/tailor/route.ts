@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { streamClaude, createStreamResponse } from "@/lib/claude";
 import { RESUME_TAILOR_PROMPT } from "@/lib/prompts/resume-tailor";
+import { checkLimit, incrementUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 60;
@@ -14,6 +15,15 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Usage limit check
+    const limitCheck = await checkLimit(supabase, user.id, "resumeTailors");
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        { error: "Monthly limit reached", limitReached: true, ...limitCheck },
+        { status: 403 }
+      );
     }
 
     const { resumeId, jobDescription, dossier } = await request.json();
@@ -52,6 +62,9 @@ export async function POST(request: Request) {
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });
     }
+
+    // Increment usage after successful record creation
+    await incrementUsage(supabase, user.id, "resumeTailors");
 
     let userMessage = `RESUME DATA:
 ${JSON.stringify(resume.parsed_data, null, 2)}

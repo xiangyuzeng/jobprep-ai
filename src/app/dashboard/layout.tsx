@@ -18,6 +18,13 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("tier")
+    .eq("id", user.id)
+    .single();
+  const tier = (profile?.tier as string) || "free";
+
   return (
     <div className="min-h-screen" style={{ background: "var(--paper-light)" }}>
       <nav
@@ -28,7 +35,7 @@ export default async function DashboardLayout({
           borderColor: "var(--paper-dark)",
         }}
       >
-        <DashboardNav userEmail={user.email || ""} />
+        <DashboardNav userEmail={user.email || ""} tier={tier} />
       </nav>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}

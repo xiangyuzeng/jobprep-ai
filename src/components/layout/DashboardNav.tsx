@@ -14,7 +14,45 @@ const NAV_LINKS = [
   { href: "/dashboard/simulator", label: "Mock Interview" },
 ];
 
-export default function DashboardNav({ userEmail }: { userEmail: string }) {
+function TierBadge({ tier }: { tier: string }) {
+  if (tier === "super") {
+    return (
+      <span
+        style={{
+          padding: "2px 8px",
+          borderRadius: 100,
+          fontSize: 11,
+          fontWeight: 700,
+          background: "var(--vermillion)",
+          color: "white",
+          whiteSpace: "nowrap",
+        }}
+      >
+        ✦ Admin
+      </span>
+    );
+  }
+  if (tier === "pro") {
+    return (
+      <span
+        style={{
+          padding: "2px 8px",
+          borderRadius: 100,
+          fontSize: 11,
+          fontWeight: 700,
+          background: "var(--gold-accent)",
+          color: "white",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Pro
+      </span>
+    );
+  }
+  return null;
+}
+
+export default function DashboardNav({ userEmail, tier = "free" }: { userEmail: string; tier?: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -87,7 +125,17 @@ export default function DashboardNav({ userEmail }: { userEmail: string }) {
           </div>
 
           {/* Desktop user info */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <TierBadge tier={tier} />
+            {tier === "free" && (
+              <Link
+                href="/dashboard/upgrade"
+                className="text-xs font-medium"
+                style={{ color: "var(--gold-accent)", textDecoration: "none" }}
+              >
+                Upgrade
+              </Link>
+            )}
             <span className="text-sm" style={{ color: "var(--ink-light)" }}>
               {userEmail}
             </span>
@@ -174,13 +222,29 @@ export default function DashboardNav({ userEmail }: { userEmail: string }) {
               {link.label}
             </Link>
           ))}
+          {tier === "free" && (
+            <Link
+              href="/dashboard/upgrade"
+              className="block py-2.5 text-sm font-medium transition-colors"
+              style={{
+                color: "var(--gold-accent)",
+                textDecoration: "none",
+                borderBottom: "1px solid var(--paper-dark)",
+              }}
+            >
+              ↑ Upgrade to Pro
+            </Link>
+          )}
           <div
             className="flex items-center justify-between pt-3 mt-1"
             style={{ borderTop: "none" }}
           >
-            <span className="text-xs" style={{ color: "var(--ink-light)" }}>
-              {userEmail}
-            </span>
+            <div className="flex items-center gap-2">
+              <TierBadge tier={tier} />
+              <span className="text-xs" style={{ color: "var(--ink-light)" }}>
+                {userEmail}
+              </span>
+            </div>
             <form action="/api/auth/signout" method="POST">
               <button
                 type="submit"

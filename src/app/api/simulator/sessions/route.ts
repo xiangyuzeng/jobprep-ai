@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { checkLimit, incrementUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
 import type { RiskAuditReport } from "@/types/risk-audit";
 
@@ -45,6 +46,15 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Usage limit check
+  const limitCheck = await checkLimit(supabase, user.id, "simulatorSessions");
+  if (!limitCheck.allowed) {
+    return NextResponse.json(
+      { error: "Monthly limit reached", limitReached: true, ...limitCheck },
+      { status: 403 }
+    );
   }
 
   const body = await request.json();
@@ -237,6 +247,8 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  await incrementUsage(supabase, user.id, "simulatorSessions");
 
   return NextResponse.json({
     sessionId: session.id,
