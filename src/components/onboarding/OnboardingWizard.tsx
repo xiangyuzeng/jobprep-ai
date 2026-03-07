@@ -582,8 +582,8 @@ export default function OnboardingWizard() {
                   Analyzing & tailoring...
                 </span>
               </div>
-              <p style={{ fontSize: 12, color: "var(--ink-light)", maxHeight: 80, overflow: "hidden" }}>
-                {streamText.slice(-200)}
+              <p style={{ fontSize: 12, color: "var(--ink-light)" }}>
+                This may take 10–15 seconds.
               </p>
             </div>
           )}

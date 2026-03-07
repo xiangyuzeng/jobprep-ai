@@ -7,9 +7,11 @@ export async function extractTextFromFile(
   const ext = filename.toLowerCase().split(".").pop();
 
   if (ext === "pdf") {
-    const pdfParse = require("pdf-parse");
-    const data = await pdfParse(buffer);
-    return data.text;
+    const { PDFParse } = require("pdf-parse");
+    const parser = new PDFParse({ data: buffer });
+    const result = await parser.getText();
+    await parser.destroy();
+    return result.text;
   }
 
   if (ext === "docx" || ext === "doc") {

@@ -1216,16 +1216,6 @@ export default function ResumeTailorPage() {
             {pageState === "generating" && (
               <div>
                 <StreamingLoader text="Analyzing job description and generating tailored suggestions..." />
-                {streamText && (
-                  <div className="mt-4 bg-white rounded-sm border border-gray-200 p-4 max-h-48 overflow-y-auto">
-                    <p className="text-xs text-gray-400 mb-1">
-                      Raw stream output:
-                    </p>
-                    <pre className="text-xs text-gray-500 whitespace-pre-wrap font-mono break-all">
-                      {streamText.slice(-500)}
-                    </pre>
-                  </div>
-                )}
               </div>
             )}
 
