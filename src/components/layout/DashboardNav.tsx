@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: "/dashboard/coach", label: "AI Coach" },
   { href: "/dashboard/interview", label: "Interview Prep" },
   { href: "/dashboard/simulator", label: "Mock Interview" },
+  { href: "/dashboard/tracker", label: "Tracker" },
 ];
 
 function TierBadge({ tier }: { tier: string }) {

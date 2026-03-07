@@ -542,6 +542,11 @@ export default function ResumeTailorPage() {
   const [vulnerabilityId, setVulnerabilityId] = useState<string | null>(null);
   const [vulnerabilityLoading, setVulnerabilityLoading] = useState(false);
 
+  // Track application prompt
+  const [showTrackPrompt, setShowTrackPrompt] = useState(false);
+  const [trackDismissed, setTrackDismissed] = useState(false);
+  const [trackSaving, setTrackSaving] = useState(false);
+
   // Abort controller for streaming
   const abortRef = useRef<AbortController | null>(null);
 
@@ -656,6 +661,7 @@ export default function ResumeTailorPage() {
                 const tailorResult: TailorResult = JSON.parse(jsonMatch[0]);
                 setResult(tailorResult);
                 setPageState("results");
+                setShowTrackPrompt(true);
               } else {
                 throw new Error("Failed to parse analysis results.");
               }
@@ -794,6 +800,33 @@ export default function ResumeTailorPage() {
   // -------------------------------------------------------------------------
   // PDF Download
   // -------------------------------------------------------------------------
+
+  async function handleTrackApplication() {
+    if (!result?.jd_analysis || !tailoredResumeId) return;
+    setTrackSaving(true);
+    try {
+      const res = await fetch("/api/tracker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company_name: result.jd_analysis.company || "Unknown Company",
+          job_title: result.jd_analysis.job_title,
+          job_description: jobDescription,
+          tailored_resume_id: tailoredResumeId,
+          resume_id: resumeId,
+          status: "saved",
+        }),
+      });
+      if (res.ok) {
+        setShowTrackPrompt(false);
+        setTrackDismissed(true);
+      }
+    } catch {
+      // Non-critical — silently fail
+    } finally {
+      setTrackSaving(false);
+    }
+  }
 
   async function handleDownloadPdf() {
     if (!tailoredResumeId) return;
@@ -1193,6 +1226,41 @@ export default function ResumeTailorPage() {
                     </pre>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Track Application Prompt */}
+            {showTrackPrompt && !trackDismissed && pageState === "results" && result?.jd_analysis && (
+              <div
+                className="flex items-center justify-between px-4 py-3 rounded-sm"
+                style={{ background: "#ecfdf5", border: "1px solid #6ee7b7" }}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="#2d6a4f" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <span className="text-sm text-gray-700">
+                    Track your application to{" "}
+                    <span className="font-medium">{result.jd_analysis.company || "this company"}</span>?
+                  </span>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={handleTrackApplication}
+                    disabled={trackSaving}
+                    className="text-xs font-medium px-3 py-1.5 rounded-sm text-white transition-colors disabled:opacity-50"
+                    style={{ background: "#2d6a4f" }}
+                  >
+                    {trackSaving ? "Saving..." : "Track"}
+                  </button>
+                  <button
+                    onClick={() => setTrackDismissed(true)}
+                    className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5"
+                  >
+                    Dismiss
+                  </button>
+                </div>
               </div>
             )}
 
