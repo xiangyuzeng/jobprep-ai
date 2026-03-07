@@ -52,7 +52,7 @@ export async function POST(request: Request) {
           total_questions: template.questionCount,
           modules_total: template.moduleCount,
           source_type: "template",
-          source_id: templateId,
+          source_id: null,
           dossier: null,
           status: "generating_answers",
           modules_completed: 0,

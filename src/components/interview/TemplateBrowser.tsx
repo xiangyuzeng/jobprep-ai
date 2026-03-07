@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { BOARD_TEMPLATES, getAllTags } from "@/lib/board-templates";
 import type { BoardTemplate } from "@/lib/board-templates";
 import TemplateCard from "./TemplateCard";
@@ -22,6 +22,13 @@ export default function TemplateBrowser({ onSelectTemplate, loading }: TemplateB
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [loadingTemplateId, setLoadingTemplateId] = useState<string | null>(null);
+
+  // Reset internal loading state when parent signals loading is done (error or success)
+  useEffect(() => {
+    if (!loading && loadingTemplateId) {
+      setLoadingTemplateId(null);
+    }
+  }, [loading, loadingTemplateId]);
 
   const allTags = useMemo(() => getAllTags(), []);
 

@@ -78,6 +78,11 @@ export default function InterviewBoardCreatePage() {
         loading={templateLoading}
       />
 
+      {/* Template error display */}
+      {error && templateLoading === false && (
+        <p style={{ color: "#c23616", fontSize: 13, marginTop: 8 }}>{error}</p>
+      )}
+
       {/* Separator */}
       <div style={{
         display: "flex", alignItems: "center", gap: 12,
