@@ -17,14 +17,54 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { companyName, role, roundType, language, jobDescription, interviewerInfo, vulnerabilityData, sourceType, sourceId, dossier } =
+    const { companyName, role, roundType, language, jobDescription, interviewerInfo, vulnerabilityData, sourceType, sourceId, dossier, templateId } =
       await request.json();
 
-    if (!companyName || !role || !roundType) {
+    if (!templateId && (!companyName || !role || !roundType)) {
       return NextResponse.json(
         { error: "Company name, role, and round type are required" },
         { status: 400 }
       );
+    }
+
+    // Template-based board creation — skip question generation
+    if (templateId) {
+      const { BOARD_TEMPLATES } = await import("@/lib/board-templates");
+      const template = BOARD_TEMPLATES.find((t) => t.id === templateId);
+      if (!template) {
+        return NextResponse.json(
+          { error: "Template not found" },
+          { status: 404 }
+        );
+      }
+
+      const { data: board, error: dbError } = await supabase
+        .from("interview_boards")
+        .insert({
+          user_id: user.id,
+          company_name: template.company,
+          role: template.role,
+          round_type: template.roundType,
+          language: template.language,
+          board_type: template.boardType,
+          qtypes: template.qtypes,
+          modules: template.modules,
+          total_questions: template.questionCount,
+          modules_total: template.moduleCount,
+          source_type: "template",
+          source_id: templateId,
+          dossier: null,
+          status: "generating_answers",
+          modules_completed: 0,
+        })
+        .select("id")
+        .single();
+
+      if (dbError) {
+        return NextResponse.json({ error: dbError.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ boardId: board!.id });
     }
 
     // Create board record
