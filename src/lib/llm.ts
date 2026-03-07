@@ -9,15 +9,22 @@ const MODELS = {
   openai: "gpt-4o",
 } as const;
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-  timeout: 120_000,
-});
+let _anthropic: Anthropic | null = null;
+let _openai: OpenAI | null = null;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  timeout: 120_000,
-});
+function getAnthropic(): Anthropic {
+  if (!_anthropic) {
+    _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 120_000 });
+  }
+  return _anthropic;
+}
+
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 120_000 });
+  }
+  return _openai;
+}
 
 export async function getProvider(
   supabase: SupabaseClient,
@@ -48,7 +55,7 @@ export async function streamLLM(
   const { systemPrompt, userMessage, maxTokens = 8192, signal, timeout } = opts;
 
   if (provider === "openai") {
-    return openai.chat.completions.create(
+    return getOpenAI().chat.completions.create(
       {
         model: MODELS.openai,
         max_tokens: maxTokens,
@@ -65,7 +72,7 @@ export async function streamLLM(
     );
   }
 
-  return anthropic.messages.stream(
+  return getAnthropic().messages.stream(
     {
       model: MODELS.claude,
       max_tokens: maxTokens,
@@ -81,7 +88,7 @@ export async function streamLLM(
 
 // ── Normalize stream iteration ──
 
-type AnyStream = ReturnType<typeof anthropic.messages.stream> | OpenAI.Chat.Completions.ChatCompletion & { [Symbol.asyncIterator]?: never } | AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
+type AnyStream = ReturnType<Anthropic["messages"]["stream"]> | OpenAI.Chat.Completions.ChatCompletion & { [Symbol.asyncIterator]?: never } | AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
 
 export async function* iterateStream(
   stream: AnyStream
@@ -163,7 +170,7 @@ export async function callLLM(
   const { systemPrompt, userMessage, maxTokens = 1024, signal, timeout } = opts;
 
   if (provider === "openai") {
-    const response = await openai.chat.completions.create(
+    const response = await getOpenAI().chat.completions.create(
       {
         model: MODELS.openai,
         max_tokens: maxTokens,
@@ -180,7 +187,7 @@ export async function callLLM(
     return response.choices[0]?.message?.content || "";
   }
 
-  const response = await anthropic.messages.create(
+  const response = await getAnthropic().messages.create(
     {
       model: MODELS.claude,
       max_tokens: maxTokens,
@@ -224,7 +231,7 @@ export function streamLLMMultiTurn(
     let totalUsage = { inputTokens: 0, outputTokens: 0 };
 
     const wrappedStream = (async function* () {
-      const response = await openai.chat.completions.create(
+      const response = await getOpenAI().chat.completions.create(
         {
           model: MODELS.openai,
           max_tokens: maxTokens,
@@ -252,7 +259,7 @@ export function streamLLMMultiTurn(
   }
 
   // Claude path
-  const claudeStream = anthropic.messages.stream(
+  const claudeStream = getAnthropic().messages.stream(
     {
       model: MODELS.claude,
       max_tokens: maxTokens,
