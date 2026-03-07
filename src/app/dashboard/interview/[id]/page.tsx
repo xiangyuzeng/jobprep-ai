@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import dynamic from "next/dynamic";
 import { getRoundConfig, getAnswerTarget } from "@/lib/round-config";
 import { ProgressLoader } from "@/components/ui/ProgressLoader";
+import ThankYouModal from "@/components/follow-up/ThankYouModal";
 
 const SpeechPracticePanel = dynamic(() => import("@/components/interview/SpeechPracticePanel"), { ssr: false });
 const DossierCard = dynamic(() => import("@/components/dossier/DossierCard"), { ssr: false });
@@ -262,6 +263,7 @@ export default function InterviewBoardPage() {
   const [showRoundTips, setShowRoundTips] = useState(false);
   const [exportLoading, setExportLoading] = useState<string | null>(null);
   const [generationError, setGenerationError] = useState("");
+  const [showThankYou, setShowThankYou] = useState(false);
 
   const generatingRef = useRef(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -880,6 +882,12 @@ export default function InterviewBoardPage() {
               >
                 🎤 Mock Interview
               </Link>
+              <button
+                onClick={() => setShowThankYou(true)}
+                style={{ padding: "3px 10px", borderRadius: 6, border: "none", background: "#2d6a4f", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
+              >
+                ✉️ Thank-You
+              </button>
             </div>
           </div>
 
@@ -1382,6 +1390,17 @@ export default function InterviewBoardPage() {
           {totalQuestions} questions · {modulesMeta.length} modules · {board.round_type}
         </p>
       </footer>
+
+      {/* Thank-You Email Modal */}
+      {showThankYou && board && (
+        <ThankYouModal
+          isOpen={showThankYou}
+          onClose={() => setShowThankYou(false)}
+          companyName={board.company_name}
+          role={board.role}
+          boardId={boardId}
+        />
+      )}
 
       {/* Global styles */}
       <style>{`

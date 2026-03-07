@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import type { AnswerRecord, SimulatorConfig } from "@/hooks/useInterviewSimulator";
+import ThankYouModal from "@/components/follow-up/ThankYouModal";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -34,6 +36,7 @@ interface Props {
   onPracticeAgain: () => void;
   onBackToBoard: () => void;
   readOnly?: boolean;
+  sessionId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,7 +91,9 @@ export default function SimulatorResultsPanel({
   onPracticeAgain,
   onBackToBoard,
   readOnly = false,
+  sessionId,
 }: Props) {
+  const [showThankYou, setShowThankYou] = useState(false);
   const {
     overallScore,
     contentScore,
@@ -709,7 +714,54 @@ export default function SimulatorResultsPanel({
           >
             Back to Board
           </button>
+          <button
+            onClick={() => setShowThankYou(true)}
+            className="cursor-pointer"
+            style={{
+              padding: "10px 28px",
+              borderRadius: 6,
+              border: "none",
+              background: "#2d6a4f",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            ✉️ Thank-You Email
+          </button>
         </div>
+      )}
+
+      {/* Thank-You button for readOnly (review) mode */}
+      {readOnly && (
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 8 }}>
+          <button
+            onClick={() => setShowThankYou(true)}
+            className="cursor-pointer"
+            style={{
+              padding: "10px 28px",
+              borderRadius: 6,
+              border: "none",
+              background: "#2d6a4f",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            ✉️ Thank-You Email
+          </button>
+        </div>
+      )}
+
+      {showThankYou && config && (
+        <ThankYouModal
+          isOpen={showThankYou}
+          onClose={() => setShowThankYou(false)}
+          companyName={config.companyName}
+          role={config.role}
+          sessionId={sessionId}
+          boardId={config.boardId}
+        />
       )}
     </div>
   );

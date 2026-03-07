@@ -341,6 +341,7 @@ export default function SimulatorPageClient({
         answers={answers}
         config={config}
         aggregateScores={aggregateScores}
+        sessionId={sim.sessionId || undefined}
         onPracticeAgain={() => window.location.reload()}
         onBackToBoard={() => {
           if (config?.boardId) {

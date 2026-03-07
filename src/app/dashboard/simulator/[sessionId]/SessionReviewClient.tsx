@@ -159,6 +159,7 @@ export default function SessionReviewClient({ session, dbAnswers }: Props) {
       answers={answers}
       config={config}
       aggregateScores={aggregateScores}
+      sessionId={session.id}
       onPracticeAgain={() => {
         window.location.href = "/dashboard/simulator";
       }}
