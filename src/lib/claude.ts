@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
+  timeout: 120_000, // 2-minute global safety net timeout
 });
 
 export { anthropic };
@@ -10,17 +11,27 @@ export async function streamClaude({
   systemPrompt,
   userMessage,
   maxTokens = 8192,
+  signal,
+  timeout,
 }: {
   systemPrompt: string;
   userMessage: string;
   maxTokens?: number;
+  signal?: AbortSignal;
+  timeout?: number;
 }) {
-  const stream = anthropic.messages.stream({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: maxTokens,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }],
-  });
+  const stream = anthropic.messages.stream(
+    {
+      model: "claude-sonnet-4-20250514",
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    },
+    {
+      ...(signal ? { signal } : {}),
+      ...(timeout ? { timeout } : {}),
+    },
+  );
 
   return stream;
 }

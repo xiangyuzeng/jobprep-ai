@@ -329,20 +329,43 @@ export default function InterviewBoardPage() {
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
           if (attempt > 0) {
+            setGenerationError(
+              `Retrying module "${mod.title}" (attempt ${attempt + 1}/${MAX_RETRIES})...`
+            );
             // Wait before retry: 2s, 4s
             await new Promise((r) => setTimeout(r, 2000 * attempt));
           }
 
-          const res = await fetch(`/api/interview/${boardId}/generate-module`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ moduleIndex: i }),
-          });
+          // 55s client-side timeout — slightly above server's 50s stream timeout
+          const fetchController = new AbortController();
+          const fetchTimeout = setTimeout(() => fetchController.abort(), 55_000);
+
+          let res: Response;
+          try {
+            res = await fetch(`/api/interview/${boardId}/generate-module`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ moduleIndex: i }),
+              signal: fetchController.signal,
+            });
+          } catch (fetchErr) {
+            clearTimeout(fetchTimeout);
+            throw fetchErr;
+          }
+          clearTimeout(fetchTimeout);
 
           if (res.ok) {
             success = true;
+            setGenerationError("");
             // Refresh board data after each module completes
-            const updated = await fetchBoard();
+            let updated: Board | null = null;
+            try {
+              updated = await fetchBoard();
+            } catch (fetchBoardErr) {
+              console.error("Failed to refresh board after module:", fetchBoardErr);
+              // Module was saved server-side — on next page load it will pick up
+              break;
+            }
             if (updated && updated.status === "generating_answers") {
               // Continue generating next module
               generatingRef.current = false;
@@ -351,16 +374,32 @@ export default function InterviewBoardPage() {
             }
             break;
           } else {
-            const errText = await res.text();
-            console.error(`Module ${i} generation attempt ${attempt + 1} failed:`, errText);
+            let errText: string;
+            try {
+              const errJson = await res.json();
+              errText = errJson.error || res.statusText;
+            } catch {
+              errText = res.statusText;
+            }
+            console.error(`Module ${i} attempt ${attempt + 1} failed (${res.status}):`, errText);
             if (attempt === MAX_RETRIES - 1) {
-              setGenerationError(`Answer generation failed for module "${mod.title}": ${errText}. Click Retry to try again.`);
+              setGenerationError(
+                `Answer generation failed for "${mod.title}": ${errText}. Click Retry.`
+              );
             }
           }
         } catch (err) {
-          console.error(`Module ${i} generation attempt ${attempt + 1} error:`, err);
+          const isAbort = err instanceof Error && err.name === "AbortError";
+          console.error(
+            `Module ${i} attempt ${attempt + 1} ${isAbort ? "timed out" : "error"}:`,
+            err
+          );
           if (attempt === MAX_RETRIES - 1) {
-            setGenerationError(`Answer generation error for module "${mod.title}". Click Retry to try again.`);
+            setGenerationError(
+              isAbort
+                ? `Module "${mod.title}" timed out. Click Retry.`
+                : `Answer generation error for "${mod.title}". Click Retry.`
+            );
           }
         }
       }

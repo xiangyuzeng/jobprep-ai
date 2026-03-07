@@ -92,33 +92,79 @@ ${questionsText}`;
       userMessage += `\n\n${formatDossierContext(board.dossier)}`;
     }
 
-    // Stream from Claude and collect full response
-    const stream = await streamClaude({
-      systemPrompt: answerPrompt,
-      userMessage,
-      maxTokens: 16384,
-    });
+    // Stream from Claude and collect full response — with 50s timeout
+    const abortController = new AbortController();
+    const streamTimeout = setTimeout(() => abortController.abort(), 50_000);
 
     let fullResponse = "";
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        fullResponse += event.delta.text;
+    try {
+      const stream = await streamClaude({
+        systemPrompt: answerPrompt,
+        userMessage,
+        maxTokens: 16384,
+        signal: abortController.signal,
+      });
+
+      for await (const event of stream) {
+        if (
+          event.type === "content_block_delta" &&
+          event.delta.type === "text_delta"
+        ) {
+          fullResponse += event.delta.text;
+        }
       }
+    } catch (streamErr) {
+      clearTimeout(streamTimeout);
+      const isAbort = streamErr instanceof Error && streamErr.name === "AbortError";
+      console.error(
+        `Module ${moduleIndex} stream ${isAbort ? "timed out (50s)" : "error"}:`,
+        streamErr
+      );
+      return NextResponse.json(
+        {
+          error: isAbort
+            ? "Answer generation timed out. Please retry."
+            : `Stream error: ${streamErr instanceof Error ? streamErr.message : String(streamErr)}`,
+        },
+        { status: isAbort ? 504 : 500 }
+      );
+    } finally {
+      clearTimeout(streamTimeout);
     }
 
-    // Parse answers JSON
-    const jsonMatch = fullResponse.match(/\{[\s\S]*\}/);
+    // Parse answers JSON — strip markdown code fences first
+    let jsonText = fullResponse;
+    const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      jsonText = fenceMatch[1].trim();
+    }
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error(
+        `Module ${moduleIndex} JSON extraction failed. Raw response (first 500 chars):`,
+        fullResponse.slice(0, 500)
+      );
       return NextResponse.json(
-        { error: "Failed to parse answers" },
+        { error: "Failed to parse answers from AI response" },
         { status: 500 }
       );
     }
 
-    const result = JSON.parse(jsonMatch[0]);
+    let result;
+    try {
+      result = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error(
+        `Module ${moduleIndex} JSON.parse failed:`,
+        parseErr,
+        `\nExtracted text (first 500 chars):`,
+        jsonMatch[0].slice(0, 500)
+      );
+      return NextResponse.json(
+        { error: "Failed to parse answers JSON" },
+        { status: 500 }
+      );
+    }
 
     // Re-fetch board to get latest state (avoid race conditions)
     const { data: currentBoard } = await supabase
