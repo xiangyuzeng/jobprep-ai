@@ -158,7 +158,7 @@ export default function LandingPage() {
               Begin Your Training
             </Link>
             <a
-              href="#demo"
+              href="/demo"
               className="px-8 py-3.5 text-lg font-semibold transition-colors"
               style={{
                 border: "1px solid var(--ink-faint)",

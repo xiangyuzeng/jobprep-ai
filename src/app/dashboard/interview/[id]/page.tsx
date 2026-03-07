@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import dynamic from "next/dynamic";
 import { getRoundConfig, getAnswerTarget } from "@/lib/round-config";
+import { ProgressLoader } from "@/components/ui/ProgressLoader";
 
 const SpeechPracticePanel = dynamic(() => import("@/components/interview/SpeechPracticePanel"), { ssr: false });
 const DossierCard = dynamic(() => import("@/components/dossier/DossierCard"), { ssr: false });
@@ -1082,7 +1083,7 @@ export default function InterviewBoardPage() {
 
               {/* Card grid */}
               {!isCollapsed && (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8, marginTop: 10, paddingLeft: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 8, marginTop: 10, paddingLeft: 16 }}>
                   {mod.cards.map((c) => {
                     const isDone = completedCards.has(c.num);
                     const qInfo = qt(c.qtype);
@@ -1222,7 +1223,7 @@ export default function InterviewBoardPage() {
           onClick={(e) => { if (e.target === e.currentTarget) { setModalCardNum(null); setPracticeMode(false); } }}
           style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, background: "rgba(26,26,26,0.4)", backdropFilter: "blur(6px)" }}
         >
-          <div style={{ background: "#f5f0e8", borderRadius: 4, width: "100%", maxWidth: 820, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", border: "1px solid #e0e0e0", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", animation: "modalIn 0.25s ease-out" }}>
+          <div className="board-modal" style={{ background: "#f5f0e8", borderRadius: 4, width: "100%", maxWidth: 820, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", border: "1px solid #e0e0e0", boxShadow: "0 24px 64px rgba(0,0,0,0.15)", animation: "modalIn 0.25s ease-out" }}>
             {/* Modal header */}
             <div style={{ padding: "16px 20px", borderBottom: "1px solid #eee", flexShrink: 0, background: "#ede6d6" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
@@ -1266,9 +1267,11 @@ export default function InterviewBoardPage() {
               ) : currentModalCard.a ? (
                 renderAnswer(currentModalCard.a, currentModalCard.modColor)
               ) : (
-                <div style={{ color: "#999", fontStyle: "italic", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
-                  <div style={{ width: 24, height: 24, border: "2px solid #e8e8e4", borderTopColor: "#D97706", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 12px" }} />
-                  Answer is being generated...
+                <div style={{ padding: "20px 0" }}>
+                  <ProgressLoader
+                    steps={["Analyzing question context...", "Crafting tailored answer...", "Reviewing and refining..."]}
+                    estimatedSeconds={12}
+                  />
                 </div>
               )}
 
@@ -1390,6 +1393,9 @@ export default function InterviewBoardPage() {
         ::-webkit-scrollbar-track { background: #ede6d6; }
         ::-webkit-scrollbar-thumb { background: #c4c4c4; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #888888; }
+        @media (max-width: 640px) {
+          .board-modal { max-width: 100% !important; height: 100dvh !important; max-height: 100dvh !important; border-radius: 0 !important; margin: 0 !important; }
+        }
       `}</style>
     </div>
   );

@@ -4,6 +4,8 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import DossierCard from "@/components/dossier/DossierCard";
 import DossierLoadingState from "@/components/dossier/DossierLoadingState";
+import { ProgressLoader } from "@/components/ui/ProgressLoader";
+import { ErrorState } from "@/components/ui/ErrorState";
 import type { CompanyDossier } from "@/lib/dossier";
 
 interface JDAnalysis {
@@ -192,8 +194,12 @@ export default function PreparePage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-sm text-red-700">
-          {error}
+        <div className="mb-4">
+          <ErrorState
+            message={error}
+            onRetry={() => { setError(""); }}
+            retryLabel="Dismiss"
+          />
         </div>
       )}
 
@@ -232,6 +238,15 @@ export default function PreparePage() {
               )}
             </button>
           </div>
+          {pageState === "analyzing" && (
+            <div className="mt-4">
+              <ProgressLoader
+                steps={["Parsing job requirements...", "Extracting key skills...", "Analyzing alignment..."]}
+                estimatedSeconds={5}
+                done={pageState !== "analyzing"}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -448,6 +463,15 @@ export default function PreparePage() {
                 "Generate Interview Board"
               )}
             </button>
+            {pageState === "generating" && (
+              <div className="mt-4">
+                <ProgressLoader
+                  steps={["Researching company...", "Generating questions...", "Organizing into modules..."]}
+                  estimatedSeconds={30}
+                  done={pageState !== "generating"}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

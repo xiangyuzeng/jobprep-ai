@@ -8,6 +8,8 @@ import {
   isRiskAuditReport,
   type VulnerabilityData,
 } from "@/types/risk-audit";
+import { CardSkeleton } from "@/components/ui/SkeletonLoader";
+import { ErrorState } from "@/components/ui/ErrorState";
 import RiskAuditPanel from "@/components/risk-audit/RiskAuditPanel";
 
 // ---------------------------------------------------------------------------
@@ -918,10 +920,14 @@ export default function ResumeTailorPage() {
 
   if (pageState === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[var(--vermillion)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-gray-500">Loading resume...</p>
+      <div className="flex flex-col md:flex-row gap-4 p-6 min-h-[60vh]">
+        <div className="w-full md:w-1/2 space-y-4">
+          <CardSkeleton lines={4} />
+          <CardSkeleton lines={3} />
+        </div>
+        <div className="w-full md:w-1/2 space-y-4">
+          <CardSkeleton lines={5} />
+          <CardSkeleton lines={2} />
         </div>
       </div>
     );
@@ -933,31 +939,14 @@ export default function ResumeTailorPage() {
 
   if (pageState === "error" && !resume) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center max-w-md">
-          <svg
-            className="w-12 h-12 text-red-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2 font-cinzel">
-            Error Loading Resume
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">{error}</p>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="text-sm text-[var(--vermillion)] hover:underline"
-          >
-            Back to Dashboard
-          </button>
+      <div className="flex items-center justify-center min-h-[60vh] p-6">
+        <div className="max-w-md w-full">
+          <ErrorState
+            title="Error Loading Resume"
+            message={error || "Resume not found or could not be loaded."}
+            onRetry={() => router.push("/dashboard")}
+            retryLabel="Back to Dashboard"
+          />
         </div>
       </div>
     );
@@ -1073,11 +1062,11 @@ export default function ResumeTailorPage() {
       {/* ================================================================= */}
       {/* SPLIT SCREEN BODY                                                 */}
       {/* ================================================================= */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* ------------------------------------------------------------- */}
         {/* LEFT PANEL: JD Input + Skill Gaps + Keywords                   */}
         {/* ------------------------------------------------------------- */}
-        <div className="w-1/2 border-r border-gray-200 overflow-y-auto bg-gray-50">
+        <div className="w-full md:w-1/2 border-b md:border-b-0 md:border-r border-gray-200 overflow-y-auto bg-gray-50">
           <div className="p-6 space-y-6">
             {/* JD Input */}
             <div>
@@ -1289,7 +1278,7 @@ export default function ResumeTailorPage() {
         {/* ------------------------------------------------------------- */}
         {/* RIGHT PANEL: Suggestions / Cover Letter                        */}
         {/* ------------------------------------------------------------- */}
-        <div className="w-1/2 overflow-y-auto bg-white">
+        <div className="w-full md:w-1/2 overflow-y-auto bg-white">
           {/* Tab Toggle */}
           <div className="sticky top-0 bg-white border-b border-gray-200 px-6 pt-4 pb-0 z-10">
             <div className="flex gap-0">

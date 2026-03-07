@@ -193,7 +193,7 @@ export default function SpeechPracticePanel({
   // ------- Shared sub-components -------
 
   const renderMetricCards = () => (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+    <div className="sp-metric-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
       {/* WPM */}
       <div style={{
         textAlign: "center", padding: "12px 8px", borderRadius: 12,
@@ -683,6 +683,10 @@ export default function SpeechPracticePanel({
         }
         @keyframes spin {
           to { transform: rotate(360deg); }
+        }
+        @media (max-width: 480px) {
+          .sp-metric-grid { grid-template-columns: 1fr 1fr !important; }
+          .sp-metric-grid > :last-child { grid-column: 1 / -1; }
         }
       `}</style>
     </div>

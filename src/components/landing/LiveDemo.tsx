@@ -616,6 +616,22 @@ export default function LiveDemo() {
               >
                 Get your full analysis — it&apos;s free
               </Link>
+              <Link
+                href="/demo"
+                className="text-sm font-medium ml-4 inline-block transition-colors duration-200"
+                style={{
+                  color: "var(--ink-mid)",
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "var(--ink-dark)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "var(--ink-mid)";
+                }}
+              >
+                Try the real thing &rarr;
+              </Link>
             </div>
           )}
         </div>
