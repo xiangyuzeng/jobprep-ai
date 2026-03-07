@@ -2,10 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentPeriod, TIER_LIMITS, FEATURE_LABELS } from "@/lib/usage";
 import type { Tier, Feature } from "@/lib/usage";
 import Link from "next/link";
-import nextDynamic from "next/dynamic";
 import DashboardClient from "./DashboardClient";
-
-const OnboardingWizard = nextDynamic(() => import("@/components/onboarding/OnboardingWizard"), { ssr: false });
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
 export const dynamic = "force-dynamic";
 
