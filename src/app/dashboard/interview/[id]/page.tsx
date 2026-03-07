@@ -260,8 +260,10 @@ export default function InterviewBoardPage() {
   const [showStats, setShowStats] = useState(false);
   const [showRoundTips, setShowRoundTips] = useState(false);
   const [exportLoading, setExportLoading] = useState<string | null>(null);
+  const [generationError, setGenerationError] = useState("");
 
   const generatingRef = useRef(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ---------------------------------------------------------------------------
   // Data fetching
@@ -304,7 +306,7 @@ export default function InterviewBoardPage() {
   }, [boardId]);
 
   // ---------------------------------------------------------------------------
-  // Client-driven answer generation (Vercel-compatible)
+  // Client-driven answer generation (Vercel-compatible) — with retry
   // ---------------------------------------------------------------------------
 
   const driveGeneration = useCallback(async (b: Board) => {
@@ -313,6 +315,7 @@ export default function InterviewBoardPage() {
     if (!b.modules || b.modules.length === 0) return;
 
     generatingRef.current = true;
+    setGenerationError("");
 
     // Find the next module that needs answers
     for (let i = 0; i < b.modules.length; i++) {
@@ -320,34 +323,67 @@ export default function InterviewBoardPage() {
       const needsAnswers = !mod.cards || mod.cards.some((c: Card) => !c.a);
       if (!needsAnswers) continue;
 
-      try {
-        const res = await fetch(`/api/interview/${boardId}/generate-module`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ moduleIndex: i }),
-        });
+      let success = false;
+      const MAX_RETRIES = 3;
 
-        if (res.ok) {
-          // Refresh board data after each module completes
-          const updated = await fetchBoard();
-          if (updated && updated.status === "generating_answers") {
-            // Continue generating next module
-            generatingRef.current = false;
-            driveGeneration(updated);
-            return;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          if (attempt > 0) {
+            // Wait before retry: 2s, 4s
+            await new Promise((r) => setTimeout(r, 2000 * attempt));
           }
-        } else {
-          console.error("Module generation failed:", await res.text());
+
+          const res = await fetch(`/api/interview/${boardId}/generate-module`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ moduleIndex: i }),
+          });
+
+          if (res.ok) {
+            success = true;
+            // Refresh board data after each module completes
+            const updated = await fetchBoard();
+            if (updated && updated.status === "generating_answers") {
+              // Continue generating next module
+              generatingRef.current = false;
+              driveGeneration(updated);
+              return;
+            }
+            break;
+          } else {
+            const errText = await res.text();
+            console.error(`Module ${i} generation attempt ${attempt + 1} failed:`, errText);
+            if (attempt === MAX_RETRIES - 1) {
+              setGenerationError(`Answer generation failed for module "${mod.title}": ${errText}. Click Retry to try again.`);
+            }
+          }
+        } catch (err) {
+          console.error(`Module ${i} generation attempt ${attempt + 1} error:`, err);
+          if (attempt === MAX_RETRIES - 1) {
+            setGenerationError(`Answer generation error for module "${mod.title}". Click Retry to try again.`);
+          }
         }
-      } catch (err) {
-        console.error("Module generation error:", err);
       }
 
-      break; // Only process one module per call
+      if (!success) {
+        break; // Stop processing if a module failed all retries
+      }
+
+      break; // Only process one module per call (recursive for next)
     }
 
     generatingRef.current = false;
   }, [boardId, fetchBoard]);
+
+  // Manual retry handler
+  const handleRetryGeneration = useCallback(async () => {
+    setGenerationError("");
+    generatingRef.current = false;
+    const b = await fetchBoard();
+    if (b && b.status === "generating_answers") {
+      driveGeneration(b);
+    }
+  }, [fetchBoard, driveGeneration]);
 
   // Initial load
   useEffect(() => {
@@ -363,6 +399,31 @@ export default function InterviewBoardPage() {
 
     init();
   }, [boardId, fetchBoard, fetchProgress, driveGeneration]);
+
+  // Polling: refresh board every 5s during generation to show incremental progress
+  useEffect(() => {
+    if (board && board.status === "generating_answers" && !generationError) {
+      pollingRef.current = setInterval(async () => {
+        const updated = await fetchBoard();
+        // If generation completed externally (e.g. another tab), stop polling
+        if (updated && updated.status === "completed") {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+        }
+      }, 5000);
+    } else {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    }
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [board?.status, generationError, fetchBoard]);
 
   // ---------------------------------------------------------------------------
   // Progress saving
@@ -682,12 +743,32 @@ export default function InterviewBoardPage() {
                 </h1>
                 <p style={{ margin: "3px 0 0", fontSize: 11, color: "#888", letterSpacing: 0.5 }}>
                   {totalQuestions} questions · {modulesMeta.length} modules
-                  {isGenerating && (
+                  {isGenerating && !generationError && (
                     <span style={{ color: "#D97706", fontWeight: 600, marginLeft: 8 }}>
                       ⏳ Generating {genProgress.complete}/{genProgress.total}
                     </span>
                   )}
+                  {generationError && (
+                    <span style={{ color: "#c23616", fontWeight: 600, marginLeft: 8 }}>
+                      ⚠️ Generation paused
+                    </span>
+                  )}
                 </p>
+                {generationError && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: 11, color: "#c23616" }}>{generationError}</span>
+                    <button
+                      onClick={handleRetryGeneration}
+                      style={{
+                        padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                        background: "#c23616", color: "white", border: "none",
+                        cursor: "pointer", whiteSpace: "nowrap",
+                      }}
+                    >
+                      🔄 Retry
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
