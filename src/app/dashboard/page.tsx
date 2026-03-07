@@ -4,6 +4,7 @@ import type { Tier, Feature } from "@/lib/usage";
 import Link from "next/link";
 import DashboardClient from "./DashboardClient";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import ProgressAnalytics from "@/components/dashboard/ProgressAnalytics";
 
 export const dynamic = "force-dynamic";
 
@@ -205,6 +206,8 @@ export default async function DashboardPage() {
           </div>
         </Link>
       )}
+
+      <ProgressAnalytics />
 
       <DashboardClient
         initialResumes={resumes || []}
