@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import dynamic from "next/dynamic";
+import { getRoundConfig, getAnswerTarget } from "@/lib/round-config";
 
 const SpeechPracticePanel = dynamic(() => import("@/components/interview/SpeechPracticePanel"), { ssr: false });
 const DossierCard = dynamic(() => import("@/components/dossier/DossierCard"), { ssr: false });
@@ -257,6 +258,8 @@ export default function InterviewBoardPage() {
   const [practiceMode, setPracticeMode] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  const [showRoundTips, setShowRoundTips] = useState(false);
+  const [exportLoading, setExportLoading] = useState<string | null>(null);
 
   const generatingRef = useRef(false);
 
@@ -559,6 +562,54 @@ export default function InterviewBoardPage() {
   }, [board]);
 
   // ---------------------------------------------------------------------------
+  // Export handlers
+  // ---------------------------------------------------------------------------
+
+  async function handleExportPDF() {
+    if (!board) return;
+    setExportLoading("pdf");
+    try {
+      const res = await fetch(`/api/interview/${board.id}/export-pdf`);
+      if (!res.ok) throw new Error("PDF export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${board.company_name}_${board.role}_board.pdf`.replace(/\s+/g, "_");
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("PDF export error:", err);
+    } finally {
+      setExportLoading(null);
+    }
+  }
+
+  async function handleExportAnki() {
+    if (!board) return;
+    setExportLoading("anki");
+    try {
+      const res = await fetch(`/api/interview/${board.id}/export-anki`);
+      if (!res.ok) throw new Error("Anki export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${board.company_name}_${board.role}_flashcards.txt`.replace(/\s+/g, "_");
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Anki export error:", err);
+    } finally {
+      setExportLoading(null);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
 
@@ -614,6 +665,20 @@ export default function InterviewBoardPage() {
               <div>
                 <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, letterSpacing: -0.5, color: ACCENT, fontFamily: "'Cinzel Decorative', serif" }}>
                   {board.company_name} — {board.role}
+                  {/* Round badge */}
+                  {(() => {
+                    const roundCfg = getRoundConfig(board.round_type);
+                    return (
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 600,
+                        background: roundCfg.bgColor, color: roundCfg.color,
+                        marginLeft: 8,
+                      }}>
+                        {roundCfg.icon} {roundCfg.label}
+                      </span>
+                    );
+                  })()}
                 </h1>
                 <p style={{ margin: "3px 0 0", fontSize: 11, color: "#888", letterSpacing: 0.5 }}>
                   {totalQuestions} questions · {modulesMeta.length} modules
@@ -639,6 +704,49 @@ export default function InterviewBoardPage() {
               >
                 📊
               </button>
+              {/* Export PDF button */}
+              <button
+                onClick={handleExportPDF}
+                disabled={exportLoading === "pdf" || board.status !== "completed"}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                  background: "#f5f0e8", color: "#555", border: "1px solid #e0e0e0",
+                  cursor: board.status !== "completed" ? "not-allowed" : "pointer",
+                  opacity: board.status !== "completed" ? 0.5 : 1,
+                  transition: "all 0.15s",
+                }}
+              >
+                {exportLoading === "pdf" ? "⏳" : "📄"} PDF
+              </button>
+
+              {/* Export Anki button */}
+              <button
+                onClick={handleExportAnki}
+                disabled={exportLoading === "anki" || board.status !== "completed"}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                  background: "#f5f0e8", color: "#555", border: "1px solid #e0e0e0",
+                  cursor: board.status !== "completed" ? "not-allowed" : "pointer",
+                  opacity: board.status !== "completed" ? 0.5 : 1,
+                  transition: "all 0.15s",
+                }}
+              >
+                {exportLoading === "anki" ? "⏳" : "📇"} Anki
+              </button>
+
+              {/* Study Mode link */}
+              <Link
+                href={`/dashboard/interview/${board.id}/study`}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                  background: "#f5f0e8", color: "#555", border: "1px solid #e0e0e0",
+                  textDecoration: "none",
+                  transition: "all 0.15s",
+                }}
+              >
+                📖 Study
+              </Link>
+
               <Link
                 href={`/dashboard/coach?boardId=${boardId}&mode=mock_interviewer`}
                 style={{ padding: "3px 10px", borderRadius: 6, border: "none", background: "var(--gold-accent)", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
@@ -757,6 +865,41 @@ export default function InterviewBoardPage() {
             </div>
           </div>
         )}
+
+        {/* Round Tips collapsible */}
+        {board && (() => {
+          const roundCfg = getRoundConfig(board.round_type);
+          return (
+            <div style={{ marginBottom: 8 }}>
+              <button
+                onClick={() => setShowRoundTips(!showRoundTips)}
+                style={{
+                  padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                  background: showRoundTips ? roundCfg.bgColor : "#f5f0e8",
+                  color: showRoundTips ? roundCfg.color : "#888",
+                  border: showRoundTips ? `1px solid ${roundCfg.color}22` : "1px solid #e0e0e0",
+                  cursor: "pointer", transition: "all 0.15s",
+                }}
+              >
+                💡 Round Tips {showRoundTips ? "▾" : "▸"}
+              </button>
+              {showRoundTips && (
+                <div style={{
+                  marginTop: 6, padding: "10px 14px",
+                  background: roundCfg.bgColor, borderRadius: 8,
+                  fontSize: 12, color: "#555", lineHeight: 1.8,
+                }}>
+                  {roundCfg.tips.map((tip: string, i: number) => (
+                    <div key={i} style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+                      <span style={{ color: roundCfg.color, fontWeight: 700, flexShrink: 0 }}>·</span>
+                      <span>{tip}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </header>
 
       {/* Company Dossier Card */}
@@ -909,6 +1052,19 @@ export default function InterviewBoardPage() {
                           <div style={{ marginTop: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <span style={{ fontSize: 9, color: "#bbb", fontFamily: "'JetBrains Mono', monospace" }}>
                               {charCount} chars · ~{readMin(charCount)} min
+                              {/* Answer target indicator */}
+                              {c.a && (() => {
+                                const target = getAnswerTarget(board.round_type, c.qtype);
+                                const cc = c.charCount || c.a.length;
+                                const isOnTarget = cc >= target.minChars && cc <= target.maxChars;
+                                return (
+                                  <span style={{
+                                    display: "inline-block", width: 6, height: 6, borderRadius: "50%",
+                                    background: isOnTarget ? "var(--jade-green)" : "#D97706",
+                                    marginLeft: 6, verticalAlign: "middle",
+                                  }} title={`Target: ${target.minChars}-${target.maxChars} chars`} />
+                                );
+                              })()}
                             </span>
                             <span className="view-hint" style={{ fontSize: 10, color: mod.color, opacity: 0, transition: "opacity 0.2s" }}>
                               View answer →
@@ -988,6 +1144,49 @@ export default function InterviewBoardPage() {
                   Answer is being generated...
                 </div>
               )}
+
+              {/* Answer length indicator */}
+              {currentModalCard.a && (() => {
+                const target = getAnswerTarget(board.round_type, currentModalCard.qtype);
+                const cc = currentModalCard.charCount || currentModalCard.a.length;
+                const status = cc < target.minChars ? "Below target" : cc > target.maxChars ? "Above target" : "On target";
+                const statusColor = status === "On target" ? "var(--jade-green)" : "#D97706";
+                const pct = Math.min(100, Math.max(0, ((cc - target.minChars) / (target.maxChars - target.minChars)) * 100));
+
+                return (
+                  <div style={{
+                    marginTop: 12, padding: "8px 12px",
+                    background: "#f9f7f3", borderRadius: 8, border: "1px solid #eee",
+                  }}>
+                    {/* Bar */}
+                    <div style={{ position: "relative", height: 4, background: "#e8e4dc", borderRadius: 2, marginBottom: 6 }}>
+                      {/* Green zone */}
+                      <div style={{
+                        position: "absolute", left: "0%", right: "0%",
+                        height: "100%", background: "rgba(45,106,79,0.2)", borderRadius: 2,
+                      }} />
+                      {/* Current position marker */}
+                      <div style={{
+                        position: "absolute",
+                        left: `${Math.min(100, Math.max(0, pct))}%`,
+                        top: -3, width: 10, height: 10, borderRadius: "50%",
+                        background: statusColor, border: "2px solid white",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                        transform: "translateX(-5px)",
+                      }} />
+                    </div>
+                    {/* Text */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11 }}>
+                      <span style={{ color: statusColor, fontWeight: 600 }}>
+                        {cc} chars · ~{Math.max(1, Math.ceil(cc / 280))} min · {status}
+                      </span>
+                      <span style={{ color: "#aaa" }}>
+                        Target: {target.minChars}-{target.maxChars} chars · {target.targetMinutes}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Modal footer */}
