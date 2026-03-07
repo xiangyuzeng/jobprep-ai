@@ -538,8 +538,10 @@ export function useInterviewSimulator(): UseInterviewSimulatorReturn {
         fillerCount: 0,
         fillerWords: {},
         confidenceScore: 0,
+        confidenceBreakdown: { recognition: 0, fillerPenalty: 0, pace: 0, consistency: 0 },
         confidenceHistory: [],
         duration: 0,
+        activeSpeakingTime: 0,
       },
       score: null,
     };

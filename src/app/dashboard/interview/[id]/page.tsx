@@ -1254,7 +1254,14 @@ export default function InterviewBoardPage() {
               {practiceMode ? (
                 <SpeechPracticePanel
                   question={currentModalCard.q}
+                  questionType={currentModalCard.qtype}
+                  referenceAnswer={currentModalCard.a}
+                  companyName={board?.company_name}
+                  role={board?.role}
                   onBack={() => setPracticeMode(false)}
+                  onNextQuestion={visibleCardNums.indexOf(currentModalCard.num) < visibleCardNums.length - 1
+                    ? () => { setPracticeMode(false); navigateModal(1); }
+                    : undefined}
                 />
               ) : currentModalCard.a ? (
                 renderAnswer(currentModalCard.a, currentModalCard.modColor)

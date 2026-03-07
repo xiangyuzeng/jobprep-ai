@@ -16,14 +16,23 @@ interface ConfidenceSample {
   score: number;
 }
 
+export interface ConfidenceBreakdown {
+  recognition: number;  // 0-100
+  fillerPenalty: number; // 0-100
+  pace: number;          // 0-100
+  consistency: number;   // 0-100
+}
+
 export interface SpeechMetrics {
   wpm: number;
   wpmHistory: WpmSample[];
   fillerCount: number;
   fillerWords: Record<string, number>;
   confidenceScore: number;
+  confidenceBreakdown: ConfidenceBreakdown;
   confidenceHistory: ConfidenceSample[];
   duration: number; // seconds
+  activeSpeakingTime: number; // seconds of active speech
 }
 
 export interface UseSpeechAnalyticsReturn {
@@ -48,6 +57,8 @@ const FILLER_WORDS = [
 const IDEAL_WPM_MIN = 120;
 const IDEAL_WPM_MAX = 160;
 const SAMPLE_INTERVAL_MS = 2000;
+const SILENCE_CHECK_MS = 500;
+const SILENCE_THRESHOLD_MS = 1500;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -71,7 +82,7 @@ function calcConfidence(
   fillerRatio: number,
   wpm: number,
   wpmSamples: number[],
-): number {
+): { score: number; breakdown: ConfidenceBreakdown } {
   // Component 1: Recognition confidence (0-100) — 30% weight
   const recScore = recognitionConfidence * 100;
 
@@ -96,8 +107,26 @@ function calcConfidence(
   }
 
   const raw = recScore * 0.3 + fillerScore * 0.25 + paceScore * 0.25 + consistencyScore * 0.2;
-  return Math.round(Math.max(0, Math.min(100, raw)));
+  return {
+    score: Math.round(Math.max(0, Math.min(100, raw))),
+    breakdown: {
+      recognition: Math.round(Math.max(0, Math.min(100, recScore))),
+      fillerPenalty: Math.round(Math.max(0, Math.min(100, fillerScore))),
+      pace: Math.round(Math.max(0, Math.min(100, paceScore))),
+      consistency: Math.round(Math.max(0, Math.min(100, consistencyScore))),
+    },
+  };
 }
+
+const DEFAULT_BREAKDOWN: ConfidenceBreakdown = {
+  recognition: 0, fillerPenalty: 0, pace: 0, consistency: 0,
+};
+
+const INITIAL_METRICS: SpeechMetrics = {
+  wpm: 0, wpmHistory: [], fillerCount: 0, fillerWords: {},
+  confidenceScore: 0, confidenceBreakdown: DEFAULT_BREAKDOWN,
+  confidenceHistory: [], duration: 0, activeSpeakingTime: 0,
+};
 
 // ---------------------------------------------------------------------------
 // Hook
@@ -106,15 +135,7 @@ function calcConfidence(
 export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [metrics, setMetrics] = useState<SpeechMetrics>({
-    wpm: 0,
-    wpmHistory: [],
-    fillerCount: 0,
-    fillerWords: {},
-    confidenceScore: 0,
-    confidenceHistory: [],
-    duration: 0,
-  });
+  const [metrics, setMetrics] = useState<SpeechMetrics>(INITIAL_METRICS);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -122,6 +143,12 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
   const transcriptRef = useRef("");
   const avgConfidenceRef = useRef<number[]>([]);
   const wpmRawSamples = useRef<number[]>([]);
+
+  // Active speaking time tracking
+  const speakingTimeRef = useRef(0);          // cumulative ms of active speech
+  const lastSpeechTimestampRef = useRef(0);   // when we last got a result
+  const isSpeakingRef = useRef(false);        // currently in a speech chunk
+  const silenceIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Check browser support
   const isSupported = typeof window !== "undefined" && !!(
@@ -135,7 +162,10 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
     const text = transcriptRef.current;
     const words = text.trim().split(/\s+/).filter(Boolean);
     const wordCount = words.length;
-    const wpm = Math.round((wordCount / elapsed) * 60);
+
+    // Use active speaking time instead of total elapsed time
+    const activeSecs = speakingTimeRef.current / 1000;
+    const wpm = activeSecs > 1 ? Math.round((wordCount / activeSecs) * 60) : 0;
 
     const fillerWords = countFillers(text);
     const fillerCount = Object.values(fillerWords).reduce((s, c) => s + c, 0);
@@ -146,7 +176,7 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
       : 0.7;
 
     wpmRawSamples.current.push(wpm);
-    const confidence = calcConfidence(avgConf, fillerRatio, wpm, wpmRawSamples.current);
+    const { score: confidence, breakdown } = calcConfidence(avgConf, fillerRatio, wpm, wpmRawSamples.current);
     const time = Math.round(elapsed);
 
     setMetrics((prev) => ({
@@ -155,8 +185,10 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
       fillerCount,
       fillerWords,
       confidenceScore: confidence,
+      confidenceBreakdown: breakdown,
       confidenceHistory: [...prev.confidenceHistory, { time, score: confidence }],
       duration: time,
+      activeSpeakingTime: activeSecs,
     }));
   }, []);
 
@@ -171,6 +203,14 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
     recognition.lang = "en-US";
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      // Track active speaking time
+      const now = Date.now();
+      if (isSpeakingRef.current) {
+        speakingTimeRef.current += now - lastSpeechTimestampRef.current;
+      }
+      isSpeakingRef.current = true;
+      lastSpeechTimestampRef.current = now;
+
       let interim = "";
       let final = "";
 
@@ -211,17 +251,29 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
     transcriptRef.current = "";
     avgConfidenceRef.current = [];
     wpmRawSamples.current = [];
+
+    // Reset speaking time tracking
+    speakingTimeRef.current = 0;
+    isSpeakingRef.current = false;
+    lastSpeechTimestampRef.current = 0;
+
     setTranscript("");
-    setMetrics({
-      wpm: 0, wpmHistory: [], fillerCount: 0, fillerWords: {},
-      confidenceScore: 0, confidenceHistory: [], duration: 0,
-    });
+    setMetrics(INITIAL_METRICS);
 
     recognition.start();
     setIsListening(true);
 
     // Sample metrics at interval
     intervalRef.current = setInterval(updateMetrics, SAMPLE_INTERVAL_MS);
+
+    // Silence detection: check every 500ms if speech has stopped for 1.5s
+    silenceIntervalRef.current = setInterval(() => {
+      if (isSpeakingRef.current && (Date.now() - lastSpeechTimestampRef.current > SILENCE_THRESHOLD_MS)) {
+        // Finalize the speaking chunk — count up to the threshold boundary
+        speakingTimeRef.current += SILENCE_THRESHOLD_MS;
+        isSpeakingRef.current = false;
+      }
+    }, SILENCE_CHECK_MS);
   }, [isSupported, updateMetrics]);
 
   const stop = useCallback(() => {
@@ -234,6 +286,15 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
+    if (silenceIntervalRef.current) {
+      clearInterval(silenceIntervalRef.current);
+      silenceIntervalRef.current = null;
+    }
+    // Finalize any open speaking chunk
+    if (isSpeakingRef.current) {
+      speakingTimeRef.current += Date.now() - lastSpeechTimestampRef.current;
+      isSpeakingRef.current = false;
+    }
     setIsListening(false);
     // Final metrics update
     updateMetrics();
@@ -241,11 +302,11 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
 
   const reset = useCallback(() => {
     stop();
+    speakingTimeRef.current = 0;
+    isSpeakingRef.current = false;
+    lastSpeechTimestampRef.current = 0;
     setTranscript("");
-    setMetrics({
-      wpm: 0, wpmHistory: [], fillerCount: 0, fillerWords: {},
-      confidenceScore: 0, confidenceHistory: [], duration: 0,
-    });
+    setMetrics(INITIAL_METRICS);
   }, [stop]);
 
   // Cleanup on unmount
@@ -257,6 +318,9 @@ export function useSpeechAnalytics(): UseSpeechAnalyticsReturn {
       }
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+      }
+      if (silenceIntervalRef.current) {
+        clearInterval(silenceIntervalRef.current);
       }
     };
   }, []);

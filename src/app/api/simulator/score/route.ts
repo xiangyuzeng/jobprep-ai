@@ -122,42 +122,47 @@ export async function POST(request: Request) {
       follow_up: string | null;
     };
 
-    // 7. Insert into simulator_answers
-    const { data: answerRow, error: dbError } = await supabase
-      .from("simulator_answers")
-      .insert({
-        session_id: sessionId,
-        question_index: questionIndex,
-        question_text: questionText,
-        question_type: questionType || null,
-        reference_answer: referenceAnswer || null,
-        is_follow_up: isFollowUp,
-        parent_answer_id: parentAnswerId || null,
-        transcript: transcript || null,
-        duration_secs: Math.round(duration),
-        wpm,
-        filler_count: fillerCount,
-        confidence_score: confidenceScore,
-        content_score: scores.content_quality,
-        relevance_score: scores.relevance,
-        specificity_score: scores.specificity,
-        structure_score: scores.structure,
-        ai_feedback: scores.feedback,
-        ai_improved_answer: scores.improved_answer,
-        follow_up_question: scores.follow_up || null,
-      })
-      .select("id")
-      .single();
+    // 7. Insert into simulator_answers (skip for practice sessions)
+    let answerRow: { id: string } | null = null;
 
-    if (dbError) {
-      console.error("DB insert error:", dbError);
+    if (!sessionId.startsWith("practice-")) {
+      const { data, error: dbError } = await supabase
+        .from("simulator_answers")
+        .insert({
+          session_id: sessionId,
+          question_index: questionIndex,
+          question_text: questionText,
+          question_type: questionType || null,
+          reference_answer: referenceAnswer || null,
+          is_follow_up: isFollowUp,
+          parent_answer_id: parentAnswerId || null,
+          transcript: transcript || null,
+          duration_secs: Math.round(duration),
+          wpm,
+          filler_count: fillerCount,
+          confidence_score: confidenceScore,
+          content_score: scores.content_quality,
+          relevance_score: scores.relevance,
+          specificity_score: scores.specificity,
+          structure_score: scores.structure,
+          ai_feedback: scores.feedback,
+          ai_improved_answer: scores.improved_answer,
+          follow_up_question: scores.follow_up || null,
+        })
+        .select("id")
+        .single();
+
+      if (dbError) {
+        console.error("DB insert error:", dbError);
+      }
+      answerRow = data;
+
+      // 8. Update session current_question_index
+      await supabase
+        .from("simulator_sessions")
+        .update({ current_question_index: questionIndex })
+        .eq("id", sessionId);
     }
-
-    // 8. Update session current_question_index
-    await supabase
-      .from("simulator_sessions")
-      .update({ current_question_index: questionIndex })
-      .eq("id", sessionId);
 
     // 9. Return scores
     return NextResponse.json({
